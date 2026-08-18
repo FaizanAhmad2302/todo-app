@@ -2,8 +2,8 @@ const {
     addTodo,
     getTodos, 
     getTodo, 
-    updateTodo, 
-    editTodo, 
+    toggleTodo, 
+    renameTodo, 
     deleteTodo, 
     deleteAllTodos, 
     getCompletedTodos, 
@@ -12,12 +12,14 @@ const {
     deleteIncompleteTodos
 }=require("./todo")
 
-addTodo("Task 1");
-addTodo("Task 2");
-addTodo("Task 3");
-addTodo("Task 4");
-editTodo(1,"Task 1 updated");
-updateTodo(2);
-console.log(getTodo(1));
-console.log(getTodos());
+deleteAllTodos();
+const newTodoId = addTodo("Buy groceries");
 
+const result = toggleTodo(1);
+const result2 = toggleTodo(2);
+const result3 = renameTodo(1, "Buy milk");
+console.log(newTodoId);
+console.log(result);
+console.log(result2);
+console.log(result3);
+console.log(getTodo(1));

@@ -44,17 +44,18 @@ function getTodo(id) {
     return statement.get(id);
 }
 
-function updateTodo(id) {
+function toggleTodo(id) {
     validateId(id);
-
-    const statement = db.prepare(`UPDATE todos SET completed = 1 WHERE id = ?`);
-
+    const statement = db.prepare(`
+        UPDATE todos 
+        SET completed = 1 - completed 
+        WHERE id = ?
+    `);
     const info = statement.run(id);
-
     return info.changes > 0;
 }
 
-function editTodo(id, title) {
+function renameTodo(id, title) {
     validateId(id);
     title = validateTitle(title);
     const statement = db.prepare(`UPDATE todos SET title = ? WHERE id = ?`);
@@ -103,8 +104,8 @@ module.exports = {
     addTodo,
     getTodos,
     getTodo,
-    updateTodo,
-    editTodo,
+    toggleTodo,
+    renameTodo,
     deleteTodo,
     deleteAllTodos,
     getCompletedTodos,
