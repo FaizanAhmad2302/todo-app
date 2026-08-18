@@ -26,10 +26,10 @@ function validateId(id) {
 
 function addTodo(title) {
     title = validateTitle(title);
-
     const statement = db.prepare(`INSERT INTO todos (title) 
     VALUES (?)`);
-    statement.run(title);
+    const info = statement.run(title);
+    return info.lastInsertRowid;
 }
 
 function getTodos() {
@@ -48,27 +48,31 @@ function updateTodo(id) {
     validateId(id);
 
     const statement = db.prepare(`UPDATE todos SET completed = 1 WHERE id = ?`);
-    statement.run(id);
+
+    const info = statement.run(id);
+
+    return info.changes > 0;
 }
 
 function editTodo(id, title) {
     validateId(id);
     title = validateTitle(title);
-
     const statement = db.prepare(`UPDATE todos SET title = ? WHERE id = ?`);
-    statement.run(title, id);
+    const info = statement.run(title, id);
+    return info.changes > 0;
 }
 
 function deleteTodo(id) {
     validateId(id);
-
     const statement = db.prepare(`DELETE FROM todos WHERE id = ?`);
-    statement.run(id);
+    const info = statement.run(id);
+    return info.changes > 0;
 }
 
 function deleteAllTodos() {
     const statement = db.prepare(`DELETE FROM todos`);
-    statement.run();
+    const info = statement.run();
+    return info.changes;
 }
 
 function getCompletedTodos() {
@@ -83,13 +87,17 @@ function getIncompleteTodos() {
 
 function deleteCompletedTodos() {
     const statement = db.prepare(`DELETE FROM todos WHERE completed = 1`);
-    statement.run();
+    const info = statement.run();
+    return info.changes;
 }
 
 function deleteIncompleteTodos() {
     const statement = db.prepare(`DELETE FROM todos WHERE completed = 0`);
-    statement.run();
+    const info = statement.run();
+    return info.changes;
 }
+    
+
 
 module.exports = {
     addTodo,
