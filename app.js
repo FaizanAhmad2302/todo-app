@@ -1,25 +1,12 @@
-const {
-    addTodo,
-    getTodos, 
-    getTodo, 
-    toggleTodo, 
-    renameTodo, 
-    deleteTodo, 
-    deleteAllTodos, 
-    getCompletedTodos, 
-    getIncompleteTodos, 
-    deleteCompletedTodos, 
-    deleteIncompleteTodos
-}=require("./todo")
+const connectDatabase = require("./database");
 
-deleteAllTodos();
-const newTodoId = addTodo("Buy groceries");
+async function startApp() {
+    await connectDatabase();
 
-const result = toggleTodo(1);
-const result2 = toggleTodo(2);
-const result3 = renameTodo(1, "Buy milk");
-console.log(newTodoId);
-console.log(result);
-console.log(result2);
-console.log(result3);
-console.log(getTodo(1));
+    console.log("MongoDB is connected and ready");
+}
+
+startApp().catch((error) => {
+    console.error("Application failed to start:", error.message);
+    process.exit(1);
+});

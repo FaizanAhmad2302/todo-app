@@ -1,8 +1,12 @@
-const Database = require('better-sqlite3');
-const db=new Database('TODOs.db')
-db.exec(`CREATE TABLE IF NOT EXISTS todos (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    completed INTEGER NOT NULL DEFAULT 0
-)`);
-module.exports=db;
+require("dotenv").config();
+const mongoose = require("mongoose");
+async function connectDatabase() {
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log("Connected to MongoDB");
+    } catch (error) {
+        console.error("MongoDB connection failed:", error.message);
+        process.exit(1);
+    }
+}
+module.exports = connectDatabase;

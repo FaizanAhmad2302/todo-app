@@ -1,12 +1,10 @@
-const db = require("./database");
+const Todo = require("./models/Todo");
 
 function validateTitle(title) {
     if (typeof title !== "string") {
         throw new Error("Title must be a string");
     }
-
     const trimmedTitle = title.trim();
-
     if (trimmedTitle.length === 0) {
         throw new Error("Title cannot be empty");
     }
@@ -14,91 +12,93 @@ function validateTitle(title) {
     if (trimmedTitle.length > 50) {
         throw new Error("Title cannot be more than 50 characters");
     }
-
     return trimmedTitle;
 }
 
-function validateId(id) {
-    if (!Number.isInteger(id)) {
-        throw new Error("ID must be an integer");
+function validateTodoNumber(todoNumber) {
+    if (!Number.isInteger(todoNumber) || todoNumber < 1) {
+        throw new Error("Todo number must be a positive integer");
     }
 }
 
-function addTodo(title) {
+async function getNextTodoNumber() {
+    const lastTodo = await Todo.findOne()
+        .sort({ todoNumber: -1 })
+        .select("todoNumber");
+    return lastTodo ? lastTodo.todoNumber + 1 : 1;
+}
+
+async function addTodo(title) {
     title = validateTitle(title);
-    const statement = db.prepare(`INSERT INTO todos (title) 
-    VALUES (?)`);
-    const info = statement.run(title);
-    return info.lastInsertRowid;
+    const todoNumber = await getNextTodoNumber();
+    const todo = await Todo.create({
+        todoNumber,
+        title
+    });
+    return todo.todoNumber;
 }
 
-function getTodos() {
-    const statement = db.prepare(`SELECT * FROM todos`);
-    return statement.all();
+async function getTodos() {
+    return await Todo.find().sort({ todoNumber: 1 });
 }
 
-function getTodo(id) {
-    validateId(id);
-
-    const statement = db.prepare(`SELECT * FROM todos WHERE id = ?`);
-    return statement.get(id);
+async function getTodo(todoNumber) {
+    validateTodoNumber(todoNumber);
+    return await Todo.findOne({ todoNumber });
 }
 
-function toggleTodo(id) {
-    validateId(id);
-    const statement = db.prepare(`
-        UPDATE todos 
-        SET completed = 1 - completed 
-        WHERE id = ?
-    `);
-    const info = statement.run(id);
-    return info.changes > 0;
+async function toggleTodo(todoNumber) {
+    validateTodoNumber(todoNumber);
+    const todo = await Todo.findOne({ todoNumber });
+    if (!todo) {
+        return false;
+    }
+
+    todo.completed = !todo.completed;
+    await todo.save();
+    return true;
 }
 
-function renameTodo(id, title) {
-    validateId(id);
+async function renameTodo(todoNumber, title) {
+    validateTodoNumber(todoNumber);
     title = validateTitle(title);
-    const statement = db.prepare(`UPDATE todos SET title = ? WHERE id = ?`);
-    const info = statement.run(title, id);
-    return info.changes > 0;
+    const todo = await Todo.findOne({ todoNumber });
+    if (!todo) {
+        return false;
+    }
+    todo.title = title;
+    await todo.save();
+    return true;
 }
 
-function deleteTodo(id) {
-    validateId(id);
-    const statement = db.prepare(`DELETE FROM todos WHERE id = ?`);
-    const info = statement.run(id);
-    return info.changes > 0;
+async function deleteTodo(todoNumber) {
+    validateTodoNumber(todoNumber);
+    const result = await Todo.deleteOne({ todoNumber });
+    return result.deletedCount > 0;
 }
 
-function deleteAllTodos() {
-    const statement = db.prepare(`DELETE FROM todos`);
-    const info = statement.run();
-    return info.changes;
+async function deleteAllTodos() {
+    const result = await Todo.deleteMany({});
+    return result.deletedCount;
 }
 
-function getCompletedTodos() {
-    const statement = db.prepare(`SELECT * FROM todos WHERE completed = 1`);
-    return statement.all();
+async function getCompletedTodos() {
+    return await Todo.find({ completed: true }).sort({ todoNumber: 1 });
 }
 
-function getIncompleteTodos() {
-    const statement = db.prepare(`SELECT * FROM todos WHERE completed = 0`);
-    return statement.all();
+async function getIncompleteTodos() {
+    return await Todo.find({ completed: false }).sort({ todoNumber: 1 });
 }
 
-function deleteCompletedTodos() {
-    const statement = db.prepare(`DELETE FROM todos WHERE completed = 1`);
-    const info = statement.run();
-    return info.changes;
+async function deleteCompletedTodos() {
+    const result = await Todo.deleteMany({ completed: true });
+    return result.deletedCount;
 }
 
-function deleteIncompleteTodos() {
-    const statement = db.prepare(`DELETE FROM todos WHERE completed = 0`);
-    const info = statement.run();
-    return info.changes;
+async function deleteIncompleteTodos() {
+    const result = await Todo.deleteMany({ completed: false });
+    return result.deletedCount;
 }
-    
-
 
 module.exports = {
     addTodo,
