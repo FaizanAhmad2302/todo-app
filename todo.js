@@ -3,129 +3,129 @@ const TodoRepository = require("./repositories/TodoRepository");
 const repository = new TodoRepository();
 
 function validateTitle(title) {
-    if (typeof title !== "string") {
-        throw new Error("Title must be a string");
-    }
+  if (typeof title !== "string") {
+    throw new Error("Title must be a string");
+  }
 
-    const trimmedTitle = title.trim();
+  const trimmedTitle = title.trim();
 
-    if (trimmedTitle.length === 0) {
-        throw new Error("Title cannot be empty");
-    }
+  if (trimmedTitle.length === 0) {
+    throw new Error("Title cannot be empty");
+  }
 
-    if (trimmedTitle.length > 50) {
-        throw new Error("Title cannot be more than 50 characters");
-    }
+  if (trimmedTitle.length > 50) {
+    throw new Error("Title cannot be more than 50 characters");
+  }
 
-    return trimmedTitle;
+  return trimmedTitle;
 }
 
 function validateTodoNumber(todoNumber) {
-    if (!Number.isInteger(todoNumber) || todoNumber < 1) {
-        throw new Error("Todo number must be a positive integer");
-    }
+  if (!Number.isInteger(todoNumber) || todoNumber < 1) {
+    throw new Error("Todo number must be a positive integer");
+  }
 }
 
 async function getNextTodoNumber() {
-    const lastTodo = await repository.findLastNumber();
+  const lastTodo = await repository.findLastNumber();
 
-    return lastTodo ? lastTodo.todoNumber + 1 : 1;
+  return lastTodo ? lastTodo.todoNumber + 1 : 1;
 }
 
 async function addTodo(title) {
-    title = validateTitle(title);
+  title = validateTitle(title);
 
-    const todoNumber = await getNextTodoNumber();
+  const todoNumber = await getNextTodoNumber();
 
-    const todo = await repository.create({
-        todoNumber,
-        title
-    });
+  const todo = await repository.create({
+    todoNumber,
+    title,
+  });
 
-    return todo.todoNumber;
+  return todo.todoNumber;
 }
 
 async function getTodos() {
-    return await repository.findAll();
+  return await repository.findAll();
 }
 
 async function getTodo(todoNumber) {
-    validateTodoNumber(todoNumber);
+  validateTodoNumber(todoNumber);
 
-    return await repository.findByNumber(todoNumber);
+  return await repository.findByNumber(todoNumber);
 }
 
 async function toggleTodo(todoNumber) {
-    validateTodoNumber(todoNumber);
+  validateTodoNumber(todoNumber);
 
-    const todo = await repository.findByNumber(todoNumber);
+  const todo = await repository.findByNumber(todoNumber);
 
-    if (!todo) {
-        return false;
-    }
+  if (!todo) {
+    return false;
+  }
 
-    const updatedTodo = await repository.update(todoNumber, {
-        completed: !todo.completed
-    });
+  const updatedTodo = await repository.update(todoNumber, {
+    completed: !todo.completed,
+  });
 
-    return updatedTodo !== null;
+  return updatedTodo !== null;
 }
 
 async function renameTodo(todoNumber, title) {
-    validateTodoNumber(todoNumber);
-    title = validateTitle(title);
+  validateTodoNumber(todoNumber);
+  title = validateTitle(title);
 
-    const updatedTodo = await repository.update(todoNumber, {
-        title
-    });
+  const updatedTodo = await repository.update(todoNumber, {
+    title,
+  });
 
-    return updatedTodo !== null;
+  return updatedTodo !== null;
 }
 
 async function deleteTodo(todoNumber) {
-    validateTodoNumber(todoNumber);
+  validateTodoNumber(todoNumber);
 
-    const result = await repository.delete(todoNumber);
+  const result = await repository.delete(todoNumber);
 
-    return result.deletedCount > 0;
+  return result.deletedCount > 0;
 }
 
 async function deleteAllTodos() {
-    const result = await repository.deleteAll();
+  const result = await repository.deleteAll();
 
-    return result.deletedCount;
+  return result.deletedCount;
 }
 
 async function getCompletedTodos() {
-    return await repository.findCompleted();
+  return await repository.findCompleted();
 }
 
 async function getIncompleteTodos() {
-    return await repository.findIncomplete();
+  return await repository.findIncomplete();
 }
 
 async function deleteCompletedTodos() {
-    const result = await repository.deleteCompleted();
+  const result = await repository.deleteCompleted();
 
-    return result.deletedCount;
+  return result.deletedCount;
 }
 
 async function deleteIncompleteTodos() {
-    const result = await repository.deleteIncomplete();
+  const result = await repository.deleteIncomplete();
 
-    return result.deletedCount;
+  return result.deletedCount;
 }
 
 module.exports = {
-    addTodo,
-    getTodos,
-    getTodo,
-    toggleTodo,
-    renameTodo,
-    deleteTodo,
-    deleteAllTodos,
-    getCompletedTodos,
-    getIncompleteTodos,
-    deleteCompletedTodos,
-    deleteIncompleteTodos
+  addTodo,
+  getTodos,
+  getTodo,
+  toggleTodo,
+  renameTodo,
+  deleteTodo,
+  deleteAllTodos,
+  getCompletedTodos,
+  getIncompleteTodos,
+  deleteCompletedTodos,
+  deleteIncompleteTodos,
 };

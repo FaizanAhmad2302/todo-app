@@ -12,8 +12,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "mongoose": "^9.9.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
   }
 }
