@@ -1,0 +1,175 @@
+const express = require("express");
+const {
+  addTodo,
+  getTodos,
+  getTodo,
+  toggleTodo,
+  renameTodo,
+  deleteTodo,
+  deleteAllTodos,
+  getCompletedTodos,
+  getIncompleteTodos,
+  deleteCompletedTodos,
+  deleteIncompleteTodos,
+} = require("../todo");
+
+const router = express.Router();
+
+function parseTodoNumber(id) {
+  const todoNumber = Number(id);
+
+  if (!Number.isInteger(todoNumber) || todoNumber < 1) {
+    return null;
+  }
+
+  return todoNumber;
+}
+
+// GET /todos
+// GET /todos?completed=true
+// GET /todos?completed=false
+router.get("/", async (req, res) => {
+  const { completed } = req.query;
+
+  if (completed === "true") {
+    const todos = await getCompletedTodos();
+    return res.status(200).json(todos);
+  }
+
+  if (completed === "false") {
+    const todos = await getIncompleteTodos();
+    return res.status(200).json(todos);
+  }
+
+  const todos = await getTodos();
+  res.status(200).json(todos);
+});
+
+// GET /todos/:id
+router.get("/:id", async (req, res) => {
+  const todoNumber = parseTodoNumber(req.params.id);
+
+  if (!todoNumber) {
+    return res.status(400).json({ error: "Todo number must be a positive integer" });
+  }
+
+  const todo = await getTodo(todoNumber);
+
+  if (!todo) {
+    return res.status(404).json({ error: `Todo ${todoNumber} not found` });
+  }
+
+  res.status(200).json(todo);
+});
+
+// POST /todos
+router.post("/", async (req, res) => {
+  const { title } = req.body;
+
+  if (typeof title !== "string" || title.trim().length === 0) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  if (title.trim().length > 50) {
+    return res
+      .status(400)
+      .json({ error: "Title cannot be more than 50 characters" });
+  }
+
+  const todoNumber = await addTodo(title);
+  const todo = await getTodo(todoNumber);
+
+  res.status(201).json(todo);
+});
+
+// PATCH /todos/:id
+router.patch("/:id", async (req, res) => {
+  const todoNumber = parseTodoNumber(req.params.id);
+
+  if (!todoNumber) {
+    return res.status(400).json({ error: "Todo number must be a positive integer" });
+  }
+
+  const { title, completed } = req.body;
+
+  if (title === undefined && completed === undefined) {
+    return res
+      .status(400)
+      .json({ error: "At least one field (title or completed) is required" });
+  }
+
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Title must be a non-empty string" });
+    }
+
+    if (title.trim().length > 50) {
+      return res
+        .status(400)
+        .json({ error: "Title cannot be more than 50 characters" });
+    }
+  }
+
+  if (completed !== undefined && typeof completed !== "boolean") {
+    return res.status(400).json({ error: "Completed must be a boolean" });
+  }
+
+  const todo = await getTodo(todoNumber);
+
+  if (!todo) {
+    return res.status(404).json({ error: `Todo ${todoNumber} not found` });
+  }
+
+  if (title !== undefined) {
+    await renameTodo(todoNumber, title);
+  }
+
+  if (completed !== undefined && completed !== todo.completed) {
+    await toggleTodo(todoNumber);
+  }
+
+  const updatedTodo = await getTodo(todoNumber);
+  res.status(200).json(updatedTodo);
+});
+
+// DELETE /todos/:id
+router.delete("/:id", async (req, res) => {
+  const todoNumber = parseTodoNumber(req.params.id);
+
+  if (!todoNumber) {
+    return res.status(400).json({ error: "Todo number must be a positive integer" });
+  }
+
+  const todo = await getTodo(todoNumber);
+
+  if (!todo) {
+    return res.status(404).json({ error: `Todo ${todoNumber} not found` });
+  }
+
+  await deleteTodo(todoNumber);
+  res.status(204).send();
+});
+
+// DELETE /todos
+// DELETE /todos?completed=true
+// DELETE /todos?completed=false
+router.delete("/", async (req, res) => {
+  const { completed } = req.query;
+
+  if (completed === "true") {
+    await deleteCompletedTodos();
+    return res.status(204).send();
+  }
+
+  if (completed === "false") {
+    await deleteIncompleteTodos();
+    return res.status(204).send();
+  }
+
+  await deleteAllTodos();
+  res.status(204).send();
+});
+
+module.exports = router;

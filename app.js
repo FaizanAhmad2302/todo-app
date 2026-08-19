@@ -1,12 +1,22 @@
-const connectDatabase = require("./database");
+const express = require("express");
+const todoRouter = require("./routes/todos");
 
-async function startApp() {
-  await connectDatabase();
+const app = express();
 
-  console.log("MongoDB is connected and ready");
-}
+app.use(express.json());
 
-startApp().catch((error) => {
-  console.error("Application failed to start:", error.message);
-  process.exit(1);
+app.use("/todos", todoRouter);
+
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+
+  if (status === 500) {
+    console.error(err);
+  }
+
+  res.status(status).json({
+    error: status === 500 ? "Internal server error" : err.message,
+  });
 });
+
+module.exports = app;

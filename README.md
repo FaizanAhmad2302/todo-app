@@ -1,8 +1,9 @@
-# ✅ Todo CLI
+# ✅ Todo App
 
-> A lightweight command-line Todo application built with **Node.js** and **MongoDB**.
+> A lightweight Todo application with a **CLI** and an **HTTP API**, built with **Node.js**, **Express 5**, and **MongoDB**.
 
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)
 ![License](https://img.shields.io/badge/License-ISC-blue)
 
@@ -13,7 +14,8 @@
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Usage](#usage)
+- [CLI Usage](#cli-usage)
+- [HTTP API](#http-api)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
 - [API Reference](#api-reference)
@@ -30,6 +32,8 @@
 - **Rename** existing todos
 - **Delete** individual todos with confirmation prompts
 - **Bulk clear** completed, incomplete, or all todos
+- **HTTP API** with Express 5 for network access
+- **Proper status codes** (201 on create, 204 on delete, 400/404 on errors)
 
 ---
 
@@ -78,17 +82,19 @@ MONGODB_TEST_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/todo_
 > [!IMPORTANT]
 > The `.env` file contains credentials and **must not** be committed to version control. It is already included in `.gitignore`.
 
-### 4. Start the application
+### 4. Start the server
 
 ```bash
 npm start
 ```
 
+The server starts on port 3000 (or the port specified by the `PORT` environment variable).
+
 ---
 
-## Usage
+## CLI Usage
 
-Run commands with `node index.js <command>` or `npm start -- <command>`.
+Run commands with `node index.js <command>`.
 
 Running the application without a command displays the built-in help.
 
@@ -166,6 +172,58 @@ node index.js clear --all
 
 ---
 
+## HTTP API
+
+The HTTP API is served by Express 5 when you run `npm start`. All endpoints are under `/todos`.
+
+### Endpoints
+
+| Method | Path | Body | Description | Success |
+| --- | --- | --- | --- | --- |
+| `GET` | `/todos` | — | List all todos | 200 |
+| `GET` | `/todos?completed=true` | — | List completed todos | 200 |
+| `GET` | `/todos?completed=false` | — | List incomplete todos | 200 |
+| `GET` | `/todos/:id` | — | Get one todo | 200 |
+| `POST` | `/todos` | `{ "title": "Buy milk" }` | Create a todo | 201 |
+| `PATCH` | `/todos/:id` | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo | 200 |
+| `DELETE` | `/todos/:id` | — | Delete one todo | 204 |
+| `DELETE` | `/todos` | — | Delete all todos | 204 |
+| `DELETE` | `/todos?completed=true` | — | Delete completed todos | 204 |
+| `DELETE` | `/todos?completed=false` | — | Delete incomplete todos | 204 |
+
+### Error Responses
+
+| Status | Meaning | Example |
+| --- | --- | --- |
+| 400 | Invalid input | Missing title, empty title, non-integer `:id` |
+| 404 | Not found | Valid `:id` but no such todo exists |
+| 500 | Server error | Unexpected failure |
+
+### Examples
+
+```bash
+# Create a todo
+curl -X POST http://localhost:3000/todos \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Buy milk"}'
+
+# List all todos
+curl http://localhost:3000/todos
+
+# Get one todo
+curl http://localhost:3000/todos/1
+
+# Mark as completed
+curl -X PATCH http://localhost:3000/todos/1 \
+  -H "Content-Type: application/json" \
+  -d '{"completed": true}'
+
+# Delete a todo
+curl -X DELETE http://localhost:3000/todos/1
+```
+
+---
+
 ## Running Tests
 
 The project uses the **Node.js built-in test runner**:
@@ -182,14 +240,17 @@ Tests connect to the database specified by `MONGODB_TEST_URI`, keeping test data
 
 ```
 todo_app/
+├── server.js                # HTTP entry point — starts Express & connects to DB
+├── app.js                   # Express app setup, middleware & route registration
 ├── index.js                 # CLI entry point & user interaction
 ├── todo.js                  # Core todo operations & input validation
-├── app.js                   # Application bootstrap
 ├── database.js              # MongoDB connection handling
 ├── models/
 │   └── Todo.js              # Mongoose schema & model
 ├── repositories/
 │   └── TodoRepository.js    # Database access layer
+├── routes/
+│   └── todos.js             # Express router — HTTP API endpoints
 ├── test/
 │   └── todo.test.js         # Automated test suite
 ├── .env.example             # Environment variable template
@@ -201,15 +262,9 @@ todo_app/
 ### Architecture
 
 ```
-CLI (index.js)
-    ↓
-Business Logic (todo.js)
-    ↓
-Repository (TodoRepository.js)
-    ↓
-ODM (Mongoose / Todo.js)
-    ↓
-Database (MongoDB)
+CLI (index.js)  ──┐
+                   ├──▶  Business Logic (todo.js)  ──▶  Repository (TodoRepository.js)  ──▶  ODM (Mongoose / Todo.js)  ──▶  MongoDB
+HTTP (server.js → app.js → routes/todos.js)  ──┘
 ```
 
 ---
