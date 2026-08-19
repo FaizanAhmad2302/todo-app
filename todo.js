@@ -1,10 +1,14 @@
-const Todo = require("./models/Todo");
+const TodoRepository = require("./repositories/TodoRepository");
+
+const repository = new TodoRepository();
 
 function validateTitle(title) {
     if (typeof title !== "string") {
         throw new Error("Title must be a string");
     }
+
     const trimmedTitle = title.trim();
+
     if (trimmedTitle.length === 0) {
         throw new Error("Title cannot be empty");
     }
@@ -12,6 +16,7 @@ function validateTitle(title) {
     if (trimmedTitle.length > 50) {
         throw new Error("Title cannot be more than 50 characters");
     }
+
     return trimmedTitle;
 }
 
@@ -22,81 +27,92 @@ function validateTodoNumber(todoNumber) {
 }
 
 async function getNextTodoNumber() {
-    const lastTodo = await Todo.findOne()
-        .sort({ todoNumber: -1 })
-        .select("todoNumber");
+    const lastTodo = await repository.findLastNumber();
+
     return lastTodo ? lastTodo.todoNumber + 1 : 1;
 }
 
 async function addTodo(title) {
     title = validateTitle(title);
+
     const todoNumber = await getNextTodoNumber();
-    const todo = await Todo.create({
+
+    const todo = await repository.create({
         todoNumber,
         title
     });
+
     return todo.todoNumber;
 }
 
 async function getTodos() {
-    return await Todo.find().sort({ todoNumber: 1 });
+    return await repository.findAll();
 }
 
 async function getTodo(todoNumber) {
     validateTodoNumber(todoNumber);
-    return await Todo.findOne({ todoNumber });
+
+    return await repository.findByNumber(todoNumber);
 }
 
 async function toggleTodo(todoNumber) {
     validateTodoNumber(todoNumber);
-    const todo = await Todo.findOne({ todoNumber });
+
+    const todo = await repository.findByNumber(todoNumber);
+
     if (!todo) {
         return false;
     }
 
-    todo.completed = !todo.completed;
-    await todo.save();
-    return true;
+    const updatedTodo = await repository.update(todoNumber, {
+        completed: !todo.completed
+    });
+
+    return updatedTodo !== null;
 }
 
 async function renameTodo(todoNumber, title) {
     validateTodoNumber(todoNumber);
     title = validateTitle(title);
-    const todo = await Todo.findOne({ todoNumber });
-    if (!todo) {
-        return false;
-    }
-    todo.title = title;
-    await todo.save();
-    return true;
+
+    const updatedTodo = await repository.update(todoNumber, {
+        title
+    });
+
+    return updatedTodo !== null;
 }
 
 async function deleteTodo(todoNumber) {
     validateTodoNumber(todoNumber);
-    const result = await Todo.deleteOne({ todoNumber });
+
+    const result = await repository.delete(todoNumber);
+
     return result.deletedCount > 0;
 }
 
 async function deleteAllTodos() {
-    const result = await Todo.deleteMany({});
+    const result = await repository.deleteAll();
+
     return result.deletedCount;
 }
 
 async function getCompletedTodos() {
-    return await Todo.find({ completed: true }).sort({ todoNumber: 1 });
+    return await repository.findCompleted();
 }
 
 async function getIncompleteTodos() {
-    return await Todo.find({ completed: false }).sort({ todoNumber: 1 });
+    return await repository.findIncomplete();
 }
 
 async function deleteCompletedTodos() {
-    const result = await Todo.deleteMany({ completed: true });
+    const result = await repository.deleteCompleted();
+
     return result.deletedCount;
 }
 
 async function deleteIncompleteTodos() {
-    const result = await Todo.deleteMany({ completed: false });
+    const result = await repository.deleteIncomplete();
+
     return result.deletedCount;
 }
 
