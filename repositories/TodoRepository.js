@@ -10,12 +10,13 @@ class TodoRepository {
     async findByNumber(todoNumber) {
         return await Todo.findOne({ todoNumber });
     }
+    
     async update(todoNumber, data) {
-        return await Todo.findOneAndUpdate(
-            { todoNumber },
-            data,
-            { new: true }
-        );
+    return await Todo.findOneAndUpdate(
+        { todoNumber },
+        data,
+        { returnDocument: "after" }
+    );
     }
 
     async delete(todoNumber) {
