@@ -1,4 +1,5 @@
 const connectDatabase = require("./database");
+const mongoose = require("mongoose");
 const readline = require("readline");
 const {
   addTodo,
@@ -100,11 +101,12 @@ function askConfirmation(question) {
 async function main() {
   const command = process.argv[2];
 
-  await connectDatabase();
   if (!command) {
     showHelp();
     return;
   }
+
+  await connectDatabase();
 
   switch (command) {
     case "add": {
@@ -258,7 +260,11 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(`Error: ${error.message}`);
-  process.exit(1);
-});
+main()
+  .finally(async () => {
+    await mongoose.disconnect();
+  })
+  .catch((error) => {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  });
