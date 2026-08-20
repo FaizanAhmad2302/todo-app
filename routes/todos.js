@@ -25,18 +25,32 @@ function parseTodoNumber(id) {
   return todoNumber;
 }
 
+function parseCompleted(value) {
+  if (value === undefined) return undefined;
+  if (value === "true") return true;
+  if (value === "false") return false;
+
+  return null;
+}
+
 // GET /todos
 // GET /todos?completed=true
 // GET /todos?completed=false
 router.get("/", async (req, res) => {
-  const { completed } = req.query;
+  const completed = parseCompleted(req.query.completed);
 
-  if (completed === "true") {
+  if (completed === null) {
+    return res
+      .status(400)
+      .json({ error: "completed must be \"true\" or \"false\"" });
+  }
+
+  if (completed === true) {
     const todos = await getCompletedTodos();
     return res.status(200).json(todos);
   }
 
-  if (completed === "false") {
+  if (completed === false) {
     const todos = await getIncompleteTodos();
     return res.status(200).json(todos);
   }
@@ -156,14 +170,20 @@ router.delete("/:id", async (req, res) => {
 // DELETE /todos?completed=true
 // DELETE /todos?completed=false
 router.delete("/", async (req, res) => {
-  const { completed } = req.query;
+  const completed = parseCompleted(req.query.completed);
 
-  if (completed === "true") {
+  if (completed === null) {
+    return res
+      .status(400)
+      .json({ error: "completed must be \"true\" or \"false\"" });
+  }
+
+  if (completed === true) {
     await deleteCompletedTodos();
     return res.status(204).send();
   }
 
-  if (completed === "false") {
+  if (completed === false) {
     await deleteIncompleteTodos();
     return res.status(204).send();
   }
