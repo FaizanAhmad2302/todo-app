@@ -76,6 +76,14 @@ async function renameTodo(todoNumber, title) {
   return updatedTodo !== null;
 }
 
+async function updateTodo(todoNumber, { title, completed }) {
+  const update = {};
+  if (title !== undefined) update.title = validateTitle(title);
+  if (completed !== undefined) update.completed = completed;
+
+  return await repository.update(todoNumber, update);
+}
+
 async function deleteTodo(todoNumber) {
   validateTodoNumber(todoNumber);
 
@@ -115,6 +123,7 @@ module.exports = {
   getTodos,
   getTodo,
   toggleTodo,
+  updateTodo,
   renameTodo,
   deleteTodo,
   deleteAllTodos,

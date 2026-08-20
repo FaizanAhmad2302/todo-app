@@ -15,6 +15,7 @@ class TodoRepository {
   async update(todoNumber, data) {
     return await Todo.findOneAndUpdate({ todoNumber }, data, {
       returnDocument: "after",
+      runValidators: true,
     });
   }
 

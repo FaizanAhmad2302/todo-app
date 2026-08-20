@@ -3,8 +3,7 @@ const {
   addTodo,
   getTodos,
   getTodo,
-  toggleTodo,
-  renameTodo,
+  updateTodo,
   deleteTodo,
   deleteAllTodos,
   getCompletedTodos,
@@ -106,6 +105,17 @@ router.patch("/:id", async (req, res) => {
 
   const { title, completed } = req.body;
 
+  const allowedFields = ["title", "completed"];
+  const unknownFields = Object.keys(req.body).filter(
+    (key) => !allowedFields.includes(key)
+  );
+
+  if (unknownFields.length > 0) {
+    return res.status(400).json({
+      error: `Unknown fields are not allowed: ${unknownFields.join(", ")}`,
+    });
+  }
+
   if (title === undefined && completed === undefined) {
     return res
       .status(400)
@@ -130,21 +140,12 @@ router.patch("/:id", async (req, res) => {
     return res.status(400).json({ error: "Completed must be a boolean" });
   }
 
-  const todo = await getTodo(todoNumber);
+  const updatedTodo = await updateTodo(todoNumber, { title, completed });
 
-  if (!todo) {
+  if (!updatedTodo) {
     return res.status(404).json({ error: `Todo ${todoNumber} not found` });
   }
 
-  if (title !== undefined) {
-    await renameTodo(todoNumber, title);
-  }
-
-  if (completed !== undefined && completed !== todo.completed) {
-    await toggleTodo(todoNumber);
-  }
-
-  const updatedTodo = await getTodo(todoNumber);
   res.status(200).json(updatedTodo);
 });
 
