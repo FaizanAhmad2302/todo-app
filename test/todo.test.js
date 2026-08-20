@@ -1,3 +1,4 @@
+require("dotenv").config();
 const { test, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert");
 const mongoose = require("mongoose");
@@ -20,7 +21,7 @@ const {
 } = require("../todo");
 
 before(async () => {
-  await connectDatabase(true);
+  await connectDatabase(process.env.MONGODB_TEST_URI);
 });
 
 beforeEach(async () => {

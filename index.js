@@ -1,3 +1,4 @@
+require("dotenv").config();
 const connectDatabase = require("./database");
 const mongoose = require("mongoose");
 const readline = require("readline");
@@ -28,19 +29,22 @@ Commands:
       List all todos
 
   list --completed
-      List completed todos
+      List only completed todos
 
   list --incomplete
-      List incomplete todos
+      List only incomplete todos
 
-  done <number>
-      Toggle a todo between completed and incomplete
+  done <id>
+      Mark a todo as completed
 
-  edit <number> "new title"
-      Rename a todo
+  undone <id>
+      Mark a todo as incomplete
 
-  rm <number>
-      Delete one todo
+  rename <id> "new title"
+      Rename an existing todo
+
+  rm <id>
+      Delete a specific todo
 
   clear --completed
       Delete all completed todos
@@ -49,7 +53,7 @@ Commands:
       Delete all incomplete todos
 
   clear --all
-      Delete all todos
+      Delete every todo (prompts for confirmation)
 `);
 }
 
@@ -106,7 +110,7 @@ async function main() {
     return;
   }
 
-  await connectDatabase();
+  await connectDatabase(process.env.MONGODB_URI);
 
   switch (command) {
     case "add": {

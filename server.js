@@ -1,10 +1,11 @@
+require("dotenv").config();
 const app = require("./app");
 const connectDatabase = require("./database");
 
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
-    await connectDatabase();
+    await connectDatabase(process.env.MONGODB_URI);
 
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);

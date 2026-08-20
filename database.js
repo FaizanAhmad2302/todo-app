@@ -1,19 +1,12 @@
-require("dotenv").config();
 const mongoose = require("mongoose");
 
-async function connectDatabase(useTestDatabase = false) {
-  try {
-    const uri = useTestDatabase
-      ? process.env.MONGODB_TEST_URI
-      : process.env.MONGODB_URI;
-
-    await mongoose.connect(uri);
-
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
+async function connectDatabase(uri) {
+  if (!uri) {
+    throw new Error("Missing MONGODB_URI or MONGODB_TEST_URI. Copy .env.example to .env and fill it in.");
   }
+
+  await mongoose.connect(uri);
+  console.log("Connected to MongoDB");
 }
 
 module.exports = connectDatabase;
