@@ -26,16 +26,10 @@ function validateTodoNumber(todoNumber) {
   }
 }
 
-async function getNextTodoNumber() {
-  const lastTodo = await repository.findLastNumber();
-
-  return lastTodo ? lastTodo.todoNumber + 1 : 1;
-}
-
 async function addTodo(title) {
   title = validateTitle(title);
 
-  const todoNumber = await getNextTodoNumber();
+  const todoNumber = await repository.getNextNumber();
 
   const todo = await repository.create({
     todoNumber,

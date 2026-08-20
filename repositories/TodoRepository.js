@@ -1,4 +1,5 @@
 const Todo = require("../models/Todo");
+const Counter = require("../models/Counter");
 
 class TodoRepository {
   async create(data) {
@@ -41,8 +42,14 @@ class TodoRepository {
     return await Todo.deleteMany({ completed: false });
   }
 
-  async findLastNumber() {
-    return await Todo.findOne().sort({ todoNumber: -1 }).select("todoNumber");
+  async getNextNumber() {
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "todoNumber" },
+      { $inc: { seq: 1 } },
+      { returnDocument: "after", upsert: true }
+    );
+
+    return counter.seq;
   }
 }
 
