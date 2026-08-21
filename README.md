@@ -178,26 +178,26 @@ The HTTP API is served by Express 5 when you run `npm start`. All endpoints are 
 
 ### Endpoints
 
-| Method | Path | Body | Description | Success |
-| --- | --- | --- | --- | --- |
-| `GET` | `/todos` | — | List all todos | 200 |
-| `GET` | `/todos?completed=true` | — | List completed todos | 200 |
-| `GET` | `/todos?completed=false` | — | List incomplete todos | 200 |
-| `GET` | `/todos/:id` | — | Get one todo | 200 |
-| `POST` | `/todos` | `{ "title": "Buy milk" }` | Create a todo | 201 |
-| `PATCH` | `/todos/:id` | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo | 200 |
-| `DELETE` | `/todos/:id` | — | Delete one todo | 204 |
-| `DELETE` | `/todos` | — | Delete all todos | 204 |
-| `DELETE` | `/todos?completed=true` | — | Delete completed todos | 204 |
-| `DELETE` | `/todos?completed=false` | — | Delete incomplete todos | 204 |
+| Method   | Path                     | Body                                                | Description             | Success |
+| -------- | ------------------------ | --------------------------------------------------- | ----------------------- | ------- |
+| `GET`    | `/todos`                 | —                                                   | List all todos          | 200     |
+| `GET`    | `/todos?completed=true`  | —                                                   | List completed todos    | 200     |
+| `GET`    | `/todos?completed=false` | —                                                   | List incomplete todos   | 200     |
+| `GET`    | `/todos/:id`             | —                                                   | Get one todo            | 200     |
+| `POST`   | `/todos`                 | `{ "title": "Buy milk" }`                           | Create a todo           | 201     |
+| `PATCH`  | `/todos/:id`             | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo           | 200     |
+| `DELETE` | `/todos/:id`             | —                                                   | Delete one todo         | 204     |
+| `DELETE` | `/todos`                 | —                                                   | Delete all todos        | 204     |
+| `DELETE` | `/todos?completed=true`  | —                                                   | Delete completed todos  | 204     |
+| `DELETE` | `/todos?completed=false` | —                                                   | Delete incomplete todos | 204     |
 
 ### Error Responses
 
-| Status | Meaning | Example |
-| --- | --- | --- |
-| 400 | Invalid input | Missing title, empty title, non-integer `:id` |
-| 404 | Not found | Valid `:id` but no such todo exists |
-| 500 | Server error | Unexpected failure |
+| Status | Meaning       | Example                                       |
+| ------ | ------------- | --------------------------------------------- |
+| 400    | Invalid input | Missing title, empty title, non-integer `:id` |
+| 404    | Not found     | Valid `:id` but no such todo exists           |
+| 500    | Server error  | Unexpected failure                            |
 
 ### Examples
 

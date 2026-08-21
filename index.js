@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 require("dotenv").config();
 const connectDatabase = require("./database");
 const mongoose = require("mongoose");

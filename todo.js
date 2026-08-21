@@ -16,7 +16,9 @@ function validateTitle(title) {
   }
 
   if (trimmedTitle.length > MAX_TITLE_LENGTH) {
-    throw new ValidationError(`Title cannot be more than ${MAX_TITLE_LENGTH} characters`);
+    throw new ValidationError(
+      `Title cannot be more than ${MAX_TITLE_LENGTH} characters`
+    );
   }
 
   return trimmedTitle;

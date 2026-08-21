@@ -415,19 +415,23 @@ describe("DELETE /todos", () => {
     await createTodo("First");
     await createTodo("Second");
 
-    const res = await fetch(`${baseUrl}/todos?confirm=true`, { method: "DELETE" });
+    const res = await fetch(`${baseUrl}/todos?confirm=true`, {
+      method: "DELETE",
+    });
 
     assert.strictEqual(res.status, 403);
     const body = await res.json();
     assert.ok(body.error);
-    
+
     const listRes = await fetch(`${baseUrl}/todos`);
     const list = await listRes.json();
     assert.strictEqual(list.length, 2);
   });
 
   test("returns 403 if ?confirm=true is missing", async () => {
-    const res = await fetch(`${baseUrl}/todos?completed=true`, { method: "DELETE" });
+    const res = await fetch(`${baseUrl}/todos?completed=true`, {
+      method: "DELETE",
+    });
     assert.strictEqual(res.status, 403);
     const body = await res.json();
     assert.ok(body.error);

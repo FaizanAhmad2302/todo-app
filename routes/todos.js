@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
   if (completed === null) {
     return res
       .status(400)
-      .json({ error: "completed must be \"true\" or \"false\"" });
+      .json({ error: 'completed must be "true" or "false"' });
   }
 
   if (completed === true) {
@@ -94,7 +94,6 @@ router.patch("/:id", async (req, res) => {
       .json({ error: "At least one field (title or completed) is required" });
   }
 
-
   if (completed !== undefined && typeof completed !== "boolean") {
     return res.status(400).json({ error: "Completed must be a boolean" });
   }
@@ -126,9 +125,11 @@ router.delete("/:id", async (req, res) => {
 // DELETE /todos?completed=false&confirm=true
 router.delete("/", async (req, res) => {
   const confirm = req.query.confirm === "true";
-  
+
   if (!confirm) {
-    return res.status(403).json({ error: "Missing ?confirm=true parameter for bulk deletion" });
+    return res
+      .status(403)
+      .json({ error: "Missing ?confirm=true parameter for bulk deletion" });
   }
 
   const completed = parseCompleted(req.query.completed);
@@ -149,7 +150,11 @@ router.delete("/", async (req, res) => {
     return res.status(204).send();
   }
 
-  return res.status(403).json({ error: "Unfiltered bulk deletion of all todos is disabled via HTTP" });
+  return res
+    .status(403)
+    .json({
+      error: "Unfiltered bulk deletion of all todos is disabled via HTTP",
+    });
 });
 
 module.exports = router;

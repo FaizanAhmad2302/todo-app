@@ -1,14 +1,28 @@
 {
   "name": "todo_app",
   "version": "1.0.0",
-  "description": "",
+  "description": "A comprehensive CLI and HTTP API Todo application",
   "main": "index.js",
+  "bin": {
+    "todo": "index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.js",
-    "test": "node --test --test-concurrency=1 test/*.test.js"
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "todo",
+    "cli",
+    "api",
+    "mongoose"
+  ],
+  "author": "Antigravity",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -19,6 +33,8 @@
     "mongoose": "^9.9.3"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.6"
   }
 }
