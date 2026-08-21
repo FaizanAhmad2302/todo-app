@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "test": "node --test --test-concurrency=1",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
@@ -35,6 +35,7 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
+    "mongodb-memory-server": "^9.1.6",
     "prettier": "^3.9.6"
   }
 }

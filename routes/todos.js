@@ -150,11 +150,9 @@ router.delete("/", async (req, res) => {
     return res.status(204).send();
   }
 
-  return res
-    .status(403)
-    .json({
-      error: "Unfiltered bulk deletion of all todos is disabled via HTTP",
-    });
+  return res.status(403).json({
+    error: "Unfiltered bulk deletion of all todos is disabled via HTTP",
+  });
 });
 
 module.exports = router;

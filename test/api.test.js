@@ -3,7 +3,7 @@ const { test, before, after, beforeEach, describe } = require("node:test");
 const assert = require("node:assert");
 const mongoose = require("mongoose");
 
-const connectDatabase = require("../database");
+const setupDb = require("./setupDb");
 const app = require("../app");
 const Todo = require("../models/Todo");
 const Counter = require("../models/Counter");
@@ -11,7 +11,7 @@ const Counter = require("../models/Counter");
 let server, baseUrl;
 
 before(async () => {
-  await connectDatabase(process.env.MONGODB_TEST_URI);
+  await setupDb.connect();
   server = app.listen(0);
   baseUrl = `http://localhost:${server.address().port}`;
 });
@@ -24,8 +24,8 @@ beforeEach(async () => {
 after(async () => {
   await Todo.deleteMany({});
   await Counter.deleteMany({});
+  await setupDb.disconnect();
   server.close();
-  await mongoose.disconnect();
 });
 
 // --- Helpers ---

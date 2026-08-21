@@ -3,7 +3,7 @@ const { test, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert");
 const mongoose = require("mongoose");
 
-const connectDatabase = require("../database");
+const setupDb = require("./setupDb");
 const Todo = require("../models/Todo");
 const Counter = require("../models/Counter");
 
@@ -22,7 +22,7 @@ const {
 } = require("../todo");
 
 before(async () => {
-  await connectDatabase(process.env.MONGODB_TEST_URI);
+  await setupDb.connect();
 });
 
 beforeEach(async () => {
@@ -33,7 +33,7 @@ beforeEach(async () => {
 after(async () => {
   await Todo.deleteMany({});
   await Counter.deleteMany({});
-  await mongoose.disconnect();
+  await setupDb.disconnect();
 });
 
 test("getTodos returns an empty list on a fresh database", async () => {
