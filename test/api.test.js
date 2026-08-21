@@ -411,17 +411,26 @@ describe("DELETE /todos/:id", () => {
 // --- DELETE /todos ---
 
 describe("DELETE /todos", () => {
-  test("deletes all todos and returns 204", async () => {
+  test("returns 403 for unfiltered bulk delete", async () => {
     await createTodo("First");
     await createTodo("Second");
 
-    const res = await fetch(`${baseUrl}/todos`, { method: "DELETE" });
+    const res = await fetch(`${baseUrl}/todos?confirm=true`, { method: "DELETE" });
 
-    assert.strictEqual(res.status, 204);
-
+    assert.strictEqual(res.status, 403);
+    const body = await res.json();
+    assert.ok(body.error);
+    
     const listRes = await fetch(`${baseUrl}/todos`);
-    const body = await listRes.json();
-    assert.deepStrictEqual(body, []);
+    const list = await listRes.json();
+    assert.strictEqual(list.length, 2);
+  });
+
+  test("returns 403 if ?confirm=true is missing", async () => {
+    const res = await fetch(`${baseUrl}/todos?completed=true`, { method: "DELETE" });
+    assert.strictEqual(res.status, 403);
+    const body = await res.json();
+    assert.ok(body.error);
   });
 
   test("deletes only completed todos with ?completed=true", async () => {
@@ -433,7 +442,7 @@ describe("DELETE /todos", () => {
     });
     await createTodo("Not done");
 
-    const res = await fetch(`${baseUrl}/todos?completed=true`, {
+    const res = await fetch(`${baseUrl}/todos?completed=true&confirm=true`, {
       method: "DELETE",
     });
 
@@ -454,7 +463,7 @@ describe("DELETE /todos", () => {
     });
     await createTodo("Not done");
 
-    const res = await fetch(`${baseUrl}/todos?completed=false`, {
+    const res = await fetch(`${baseUrl}/todos?completed=false&confirm=true`, {
       method: "DELETE",
     });
 
@@ -467,7 +476,7 @@ describe("DELETE /todos", () => {
   });
 
   test("returns 400 for invalid completed value", async () => {
-    const res = await fetch(`${baseUrl}/todos?completed=yes`, {
+    const res = await fetch(`${baseUrl}/todos?completed=yes&confirm=true`, {
       method: "DELETE",
     });
 

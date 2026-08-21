@@ -122,16 +122,21 @@ router.delete("/:id", async (req, res) => {
   res.status(204).send();
 });
 
-// DELETE /todos
-// DELETE /todos?completed=true
-// DELETE /todos?completed=false
+// DELETE /todos?completed=true&confirm=true
+// DELETE /todos?completed=false&confirm=true
 router.delete("/", async (req, res) => {
+  const confirm = req.query.confirm === "true";
+  
+  if (!confirm) {
+    return res.status(403).json({ error: "Missing ?confirm=true parameter for bulk deletion" });
+  }
+
   const completed = parseCompleted(req.query.completed);
 
   if (completed === null) {
     return res
       .status(400)
-      .json({ error: "completed must be \"true\" or \"false\"" });
+      .json({ error: 'completed must be "true" or "false"' });
   }
 
   if (completed === true) {
@@ -144,8 +149,7 @@ router.delete("/", async (req, res) => {
     return res.status(204).send();
   }
 
-  await deleteAllTodos();
-  res.status(204).send();
+  return res.status(403).json({ error: "Unfiltered bulk deletion of all todos is disabled via HTTP" });
 });
 
 module.exports = router;
