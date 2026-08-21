@@ -14,16 +14,6 @@ const {
 
 const router = express.Router();
 
-function parseTodoNumber(id) {
-  const todoNumber = Number(id);
-
-  if (!Number.isInteger(todoNumber) || todoNumber < 1) {
-    return null;
-  }
-
-  return todoNumber;
-}
-
 function parseCompleted(value) {
   if (value === undefined) return undefined;
   if (value === "true") return true;
@@ -60,11 +50,7 @@ router.get("/", async (req, res) => {
 
 // GET /todos/:id
 router.get("/:id", async (req, res) => {
-  const todoNumber = parseTodoNumber(req.params.id);
-
-  if (!todoNumber) {
-    return res.status(400).json({ error: "Todo number must be a positive integer" });
-  }
+  const todoNumber = Number(req.params.id);
 
   const todo = await getTodo(todoNumber);
 
@@ -79,16 +65,6 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   const { title } = req.body;
 
-  if (typeof title !== "string" || title.trim().length === 0) {
-    return res.status(400).json({ error: "Title is required" });
-  }
-
-  if (title.trim().length > 50) {
-    return res
-      .status(400)
-      .json({ error: "Title cannot be more than 50 characters" });
-  }
-
   const todoNumber = await addTodo(title);
   const todo = await getTodo(todoNumber);
 
@@ -97,11 +73,7 @@ router.post("/", async (req, res) => {
 
 // PATCH /todos/:id
 router.patch("/:id", async (req, res) => {
-  const todoNumber = parseTodoNumber(req.params.id);
-
-  if (!todoNumber) {
-    return res.status(400).json({ error: "Todo number must be a positive integer" });
-  }
+  const todoNumber = Number(req.params.id);
 
   const { title, completed } = req.body;
 
@@ -122,19 +94,6 @@ router.patch("/:id", async (req, res) => {
       .json({ error: "At least one field (title or completed) is required" });
   }
 
-  if (title !== undefined) {
-    if (typeof title !== "string" || title.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Title must be a non-empty string" });
-    }
-
-    if (title.trim().length > 50) {
-      return res
-        .status(400)
-        .json({ error: "Title cannot be more than 50 characters" });
-    }
-  }
 
   if (completed !== undefined && typeof completed !== "boolean") {
     return res.status(400).json({ error: "Completed must be a boolean" });
@@ -151,11 +110,7 @@ router.patch("/:id", async (req, res) => {
 
 // DELETE /todos/:id
 router.delete("/:id", async (req, res) => {
-  const todoNumber = parseTodoNumber(req.params.id);
-
-  if (!todoNumber) {
-    return res.status(400).json({ error: "Todo number must be a positive integer" });
-  }
+  const todoNumber = Number(req.params.id);
 
   const todo = await getTodo(todoNumber);
 

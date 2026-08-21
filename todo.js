@@ -1,20 +1,22 @@
 const TodoRepository = require("./repositories/TodoRepository");
+const { MAX_TITLE_LENGTH } = require("./constants");
+const { ValidationError } = require("./errors");
 
 const repository = new TodoRepository();
 
 function validateTitle(title) {
   if (typeof title !== "string") {
-    throw new Error("Title must be a string");
+    throw new ValidationError("Title must be a string");
   }
 
   const trimmedTitle = title.trim();
 
   if (trimmedTitle.length === 0) {
-    throw new Error("Title cannot be empty");
+    throw new ValidationError("Title cannot be empty");
   }
 
-  if (trimmedTitle.length > 50) {
-    throw new Error("Title cannot be more than 50 characters");
+  if (trimmedTitle.length > MAX_TITLE_LENGTH) {
+    throw new ValidationError(`Title cannot be more than ${MAX_TITLE_LENGTH} characters`);
   }
 
   return trimmedTitle;
@@ -22,7 +24,7 @@ function validateTitle(title) {
 
 function validateTodoNumber(todoNumber) {
   if (!Number.isInteger(todoNumber) || todoNumber < 1) {
-    throw new Error("Todo number must be a positive integer");
+    throw new ValidationError("Todo number must be a positive integer");
   }
 }
 
@@ -77,6 +79,7 @@ async function renameTodo(todoNumber, title) {
 }
 
 async function updateTodo(todoNumber, { title, completed }) {
+  validateTodoNumber(todoNumber);
   const update = {};
   if (title !== undefined) update.title = validateTitle(title);
   if (completed !== undefined) update.completed = completed;

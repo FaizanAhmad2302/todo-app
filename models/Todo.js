@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { MAX_TITLE_LENGTH } = require("../constants");
 
 const todoSchema = new mongoose.Schema(
   {
@@ -13,7 +14,7 @@ const todoSchema = new mongoose.Schema(
       required: true,
       trim: true,
       minlength: 1,
-      maxlength: 50,
+      maxlength: MAX_TITLE_LENGTH,
     },
 
     completed: {
