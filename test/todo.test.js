@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 
 const connectDatabase = require("../database");
 const Todo = require("../models/Todo");
+const Counter = require("../models/Counter");
 
 const {
   addTodo,
@@ -26,10 +27,12 @@ before(async () => {
 
 beforeEach(async () => {
   await Todo.deleteMany({});
+  await Counter.deleteMany({});
 });
 
 after(async () => {
   await Todo.deleteMany({});
+  await Counter.deleteMany({});
   await mongoose.disconnect();
 });
 
