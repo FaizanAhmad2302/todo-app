@@ -1,7 +1,9 @@
-# ✅ Todo App
+# ✅ Todo App (Full-Stack)
 
-> A lightweight Todo application with a **CLI** and an **HTTP API**, built with **Node.js**, **Express 5**, and **MongoDB**.
+> A modern, full-stack Todo application featuring a **React + Vite** frontend, alongside a **CLI** and an **HTTP API**, built with **Node.js**, **Express 5**, and **MongoDB**.
 
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)
@@ -14,11 +16,11 @@
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
+- [Frontend UI](#frontend-ui)
 - [CLI Usage](#cli-usage)
 - [HTTP API](#http-api)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
-- [API Reference](#api-reference)
 - [Environment Variables](#environment-variables)
 - [License](#license)
 
@@ -26,14 +28,15 @@
 
 ## Features
 
-- **Create** todos with a title
-- **List** all, completed, or incomplete todos
-- **Toggle** completion status
-- **Rename** existing todos
-- **Delete** individual todos with confirmation prompts
-- **Bulk clear** completed, incomplete, or all todos
-- **HTTP API** with Express 5 for network access
-- **Proper status codes** (201 on create, 204 on delete, 400/404 on errors)
+- **Beautiful React Frontend** built with Vite and pure CSS.
+- **Real-time Client-Side Search** and dynamic filtering (Active/Completed).
+- **Create** todos with a title (strictly validated up to 50 characters).
+- **List** all, completed, or incomplete todos.
+- **Toggle** completion status seamlessly.
+- **Rename** existing todos inline.
+- **Delete** individual todos and execute **Bulk clear** operations with safeguards.
+- **HTTP API** with Express 5 featuring rate limiting, CORS protection, and proper status codes.
+- **CLI Mode** for managing tasks directly from your terminal.
 
 ---
 
@@ -55,13 +58,7 @@ git clone https://github.com/FaizanAhmad2302/todo-app.git
 cd todo-app
 ```
 
-### 2. Install dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure environment variables
+### 2. Configure Backend Environment
 
 Copy the example file and fill in your MongoDB connection strings:
 
@@ -70,157 +67,84 @@ cp .env.example .env
 ```
 
 ```env
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/todo_app
-MONGODB_TEST_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/todo_app_test
+MONGODB_URI=mongodb://localhost:27017/todoapp
+PORT=3000
 ```
-
-| Variable           | Description                             |
-| ------------------ | --------------------------------------- |
-| `MONGODB_URI`      | Connection string for the main database |
-| `MONGODB_TEST_URI` | Connection string for the test database |
 
 > [!IMPORTANT]
-> The `.env` file contains credentials and **must not** be committed to version control. It is already included in `.gitignore`.
+> The `.env` file contains credentials and **must not** be committed to version control. 
 
-### 4. Start the server
+### 3. Start the Backend API
 
 ```bash
-npm start
+# Install backend dependencies
+npm install
+
+# Start the Express server
+node server.js
+```
+*The backend server will start on port 3000.*
+
+### 4. Start the Frontend UI
+
+Open a new terminal window and navigate to the frontend directory:
+
+```bash
+cd frontend
+
+# Install React/Vite dependencies
+npm install
+
+# Start the development server
+npm run dev
 ```
 
-The server starts on port 3000 (or the port specified by the `PORT` environment variable).
+*The UI will be available at `http://localhost:5173`. Open this URL in your browser.*
+
+---
+
+## Frontend UI
+
+The frontend is a fully responsive Single Page Application (SPA) located in the `/frontend` directory. 
+- It uses `todoApi.js` to communicate with the Express backend via the `fetch` API.
+- All backend errors (like Rate Limiting or network issues) are gracefully caught and displayed as UI Toasts.
+- To configure the frontend API URL, you can create a `.env` file inside the `frontend` folder:
+  ```env
+  VITE_API_URL=http://localhost:3000/todos
+  ```
 
 ---
 
 ## CLI Usage
 
-Run commands with `node index.js <command>`.
-
-Running the application without a command displays the built-in help.
-
-### Add a todo
-
-```bash
-node index.js add "Buy milk"
-```
-
-### List todos
-
-```bash
-# All todos
-node index.js list
-
-# Only completed
-node index.js list --completed
-
-# Only incomplete
-node index.js list --incomplete
-```
-
-### Toggle completion
-
-```bash
-node index.js done <number>
-```
-
-Toggles the specified todo between **completed** and **incomplete**.
-
-### Edit a todo
-
-```bash
-node index.js edit <number> "New title"
-```
-
-### Delete a todo
-
-```bash
-node index.js rm <number>
-```
-
-You will be prompted for confirmation before deletion.
-
-### Bulk clear
-
-```bash
-# Delete all completed todos
-node index.js clear --completed
-
-# Delete all incomplete todos
-node index.js clear --incomplete
-
-# Delete all todos
-node index.js clear --all
-```
-
-> [!WARNING]
-> Bulk clear operations are **destructive**. The CLI will ask for confirmation before proceeding.
-
-### Command Reference
+You can also manage your tasks completely from the terminal! Run commands with `node index.js <command>`.
 
 | Command                 | Description                              |
 | ----------------------- | ---------------------------------------- |
-| `add "title"`           | Create a new todo                        |
-| `list`                  | List all todos                           |
-| `list --completed`      | List completed todos                     |
-| `list --incomplete`     | List incomplete todos                    |
-| `done <number>`         | Toggle todo completion status            |
-| `edit <number> "title"` | Rename a todo                            |
-| `rm <number>`           | Delete a single todo (with confirmation) |
-| `clear --completed`     | Delete all completed todos               |
-| `clear --incomplete`    | Delete all incomplete todos              |
-| `clear --all`           | Delete every todo                        |
+| `node index.js add "title"`| Create a new todo                        |
+| `node index.js list`      | List all todos                           |
+| `node index.js list --completed`| List completed todos                     |
+| `node index.js done <number>`| Toggle todo completion status            |
+| `node index.js edit <number> "title"` | Rename a todo                            |
+| `node index.js rm <number>`| Delete a single todo (with confirmation) |
+| `node index.js clear --completed`| Delete all completed todos               |
 
 ---
 
 ## HTTP API
 
-The HTTP API is served by Express 5 when you run `npm start`. All endpoints are under `/todos`.
+The HTTP API is served by Express 5. All endpoints are under `/todos`.
 
-### Endpoints
+| Method   | Path                     | Body                                                | Description             |
+| -------- | ------------------------ | --------------------------------------------------- | ----------------------- |
+| `GET`    | `/todos`                 | —                                                   | List all todos          |
+| `GET`    | `/todos?completed=true`  | —                                                   | List completed todos    |
+| `POST`   | `/todos`                 | `{ "title": "Buy milk" }`                           | Create a todo           |
+| `PATCH`  | `/todos/:id`             | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo           |
+| `DELETE` | `/todos/:id`             | —                                                   | Delete one todo         |
+| `DELETE` | `/todos?completed=true`  | —                                                   | Delete completed todos  |
 
-| Method   | Path                     | Body                                                | Description             | Success |
-| -------- | ------------------------ | --------------------------------------------------- | ----------------------- | ------- |
-| `GET`    | `/todos`                 | —                                                   | List all todos          | 200     |
-| `GET`    | `/todos?completed=true`  | —                                                   | List completed todos    | 200     |
-| `GET`    | `/todos?completed=false` | —                                                   | List incomplete todos   | 200     |
-| `GET`    | `/todos/:id`             | —                                                   | Get one todo            | 200     |
-| `POST`   | `/todos`                 | `{ "title": "Buy milk" }`                           | Create a todo           | 201     |
-| `PATCH`  | `/todos/:id`             | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo           | 200     |
-| `DELETE` | `/todos/:id`             | —                                                   | Delete one todo         | 204     |
-| `DELETE` | `/todos`                 | —                                                   | Delete all todos        | 204     |
-| `DELETE` | `/todos?completed=true`  | —                                                   | Delete completed todos  | 204     |
-| `DELETE` | `/todos?completed=false` | —                                                   | Delete incomplete todos | 204     |
-
-### Error Responses
-
-| Status | Meaning       | Example                                       |
-| ------ | ------------- | --------------------------------------------- |
-| 400    | Invalid input | Missing title, empty title, non-integer `:id` |
-| 404    | Not found     | Valid `:id` but no such todo exists           |
-| 500    | Server error  | Unexpected failure                            |
-
-### Examples
-
-```bash
-# Create a todo
-curl -X POST http://localhost:3000/todos \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Buy milk"}'
-
-# List all todos
-curl http://localhost:3000/todos
-
-# Get one todo
-curl http://localhost:3000/todos/1
-
-# Mark as completed
-curl -X PATCH http://localhost:3000/todos/1 \
-  -H "Content-Type: application/json" \
-  -d '{"completed": true}'
-
-# Delete a todo
-curl -X DELETE http://localhost:3000/todos/1
-```
+*(Note: Unfiltered bulk deletion `DELETE /todos` is intentionally blocked by the API for safety).*
 
 ---
 
@@ -238,65 +162,37 @@ Tests connect to the database specified by `MONGODB_TEST_URI`, keeping test data
 
 ## Project Structure
 
-```
+```text
 todo_app/
-├── server.js                # HTTP entry point — starts Express & connects to DB
-├── app.js                   # Express app setup, middleware & route registration
-├── index.js                 # CLI entry point & user interaction
-├── todo.js                  # Core todo operations & input validation
-├── database.js              # MongoDB connection handling
+├── server.js                # HTTP entry point — starts Express
+├── app.js                   # Express app setup, CORS, rate limiting
+├── index.js                 # CLI entry point
+├── todo.js                  # Core business logic
 ├── models/
-│   └── Todo.js              # Mongoose schema & model
+│   ├── Counter.js           # Atomic ID generation schema
+│   └── Todo.js              # Mongoose schema
 ├── repositories/
 │   └── TodoRepository.js    # Database access layer
 ├── routes/
-│   └── todos.js             # Express router — HTTP API endpoints
-├── test/
-│   └── todo.test.js         # Automated test suite
-├── .env.example             # Environment variable template
-├── .gitignore
-├── package.json
-└── README.md
+│   └── todos.js             # HTTP API endpoints
+├── frontend/                # React SPA
+│   ├── index.html
+│   ├── vite.config.js
+│   └── src/
+│       ├── App.jsx          # Main UI state and layout
+│       ├── index.css        # Vanilla CSS styling
+│       ├── components/      # React components (TodoForm, TodoItem, etc.)
+│       └── services/
+│           └── todoApi.js   # HTTP fetch wrappers
+└── test/
+    └── todo.test.js         # Automated test suite
 ```
 
-### Architecture
+### Architecture Flow
 
+```text
+React Frontend ──▶ Express API (app.js) ──▶ Business Logic (todo.js) ──▶ Repository ──▶ MongoDB
 ```
-CLI (index.js)  ──┐
-                   ├──▶  Business Logic (todo.js)  ──▶  Repository (TodoRepository.js)  ──▶  ODM (Mongoose / Todo.js)  ──▶  MongoDB
-HTTP (server.js → app.js → routes/todos.js)  ──┘
-```
-
----
-
-## API Reference
-
-Public functions exported by `todo.js`:
-
-| Function                        | Description                               |
-| ------------------------------- | ----------------------------------------- |
-| `addTodo(title)`                | Creates a new todo and returns its number |
-| `getTodos()`                    | Returns all todos                         |
-| `getTodo(todoNumber)`           | Returns a single todo by number           |
-| `toggleTodo(todoNumber)`        | Toggles completion status                 |
-| `renameTodo(todoNumber, title)` | Updates a todo's title                    |
-| `deleteTodo(todoNumber)`        | Deletes one todo                          |
-| `deleteAllTodos()`              | Deletes all todos                         |
-| `getCompletedTodos()`           | Returns only completed todos              |
-| `getIncompleteTodos()`          | Returns only incomplete todos             |
-| `deleteCompletedTodos()`        | Deletes all completed todos               |
-| `deleteIncompleteTodos()`       | Deletes all incomplete todos              |
-
----
-
-## Environment Variables
-
-See [`.env.example`](.env.example) for a template.
-
-| Variable           | Required | Description                            |
-| ------------------ | -------- | -------------------------------------- |
-| `MONGODB_URI`      | Yes      | MongoDB connection string (production) |
-| `MONGODB_TEST_URI` | Yes      | MongoDB connection string (test suite) |
 
 ---
 

@@ -3,9 +3,15 @@ const todoRouter = require("./routes/todos");
 
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const cors = require("cors");
 
 const app = express();
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
 app.use(helmet());
 
 // Tighten body parser limit
