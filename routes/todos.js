@@ -29,6 +29,47 @@ function parseCompleted(value) {
 // GET /todos
 // GET /todos?completed=true
 // GET /todos?completed=false
+/**
+ * @swagger
+ * /todos:
+ *   get:
+ *     summary: List the authenticated user's todos
+ *     description: |
+ *       Returns all todos belonging to the authenticated user. Optionally filter by completion status.
+ *       Each user can only see their own todos — ownership isolation is enforced server-side.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: completed
+ *         schema:
+ *           type: string
+ *           enum: ["true", "false"]
+ *         required: false
+ *         description: Filter by completion status. Omit to return all todos.
+ *     responses:
+ *       200:
+ *         description: Array of todos (may be empty)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Invalid completed query parameter value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get("/", async (req, res) => {
   const completed = parseCompleted(req.query.completed);
   const userId = req.user.id;
@@ -54,6 +95,50 @@ router.get("/", async (req, res) => {
 });
 
 // GET /todos/:id
+/**
+ * @swagger
+ * /todos/{id}:
+ *   get:
+ *     summary: Get a single todo by its number
+ *     description: |
+ *       Returns a single todo by its todoNumber. The todo must belong to the authenticated user.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: The todo number (positive integer)
+ *     responses:
+ *       200:
+ *         description: The requested todo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Invalid todo number (non-integer, negative, or decimal)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Todo not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;
@@ -68,6 +153,49 @@ router.get("/:id", async (req, res) => {
 });
 
 // POST /todos
+/**
+ * @swagger
+ * /todos:
+ *   post:
+ *     summary: Create a new todo
+ *     description: |
+ *       Creates a new todo for the authenticated user. The title must be a non-empty string
+ *       of at most 50 characters. A unique todoNumber is auto-assigned.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TodoCreateRequest'
+ *     responses:
+ *       201:
+ *         description: Todo created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: Validation error (missing title, empty string, title too long, or non-string type)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded (write operations)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/", async (req, res) => {
   const { title } = req.body;
   const userId = req.user.id;
@@ -79,6 +207,64 @@ router.post("/", async (req, res) => {
 });
 
 // PATCH /todos/:id
+/**
+ * @swagger
+ * /todos/{id}:
+ *   patch:
+ *     summary: Update a todo's title and/or completion status
+ *     description: |
+ *       Updates the title and/or completed status of a todo. At least one field must be provided.
+ *       Unknown fields in the request body are rejected with a 400 error.
+ *       The todo must belong to the authenticated user.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: The todo number (positive integer)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TodoUpdateRequest'
+ *     responses:
+ *       200:
+ *         description: Todo updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       400:
+ *         description: No fields provided, unknown fields, invalid completed type, or title validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Todo not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.patch("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;
@@ -119,6 +305,52 @@ router.patch("/:id", async (req, res) => {
 });
 
 // DELETE /todos/:id
+/**
+ * @swagger
+ * /todos/{id}:
+ *   delete:
+ *     summary: Delete a specific todo
+ *     description: |
+ *       Permanently deletes a todo by its todoNumber. The todo must belong to the authenticated user.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: The todo number (positive integer)
+ *     responses:
+ *       204:
+ *         description: Todo deleted successfully (no response body)
+ *       400:
+ *         description: Invalid todo number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Todo not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;
@@ -135,6 +367,60 @@ router.delete("/:id", async (req, res) => {
 
 // DELETE /todos?completed=true&confirm=true
 // DELETE /todos?completed=false&confirm=true
+/**
+ * @swagger
+ * /todos:
+ *   delete:
+ *     summary: Bulk delete todos by completion status
+ *     description: |
+ *       Deletes multiple todos filtered by completion status. Requires `confirm=true` query parameter
+ *       as a safety measure. Unfiltered bulk deletion of all todos is disabled via HTTP.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: completed
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: ["true", "false"]
+ *         description: Filter which todos to delete (completed or incomplete)
+ *       - in: query
+ *         name: confirm
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: ["true"]
+ *         description: Safety confirmation parameter — must be "true"
+ *     responses:
+ *       204:
+ *         description: Matching todos deleted successfully (no response body)
+ *       400:
+ *         description: Invalid completed query parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Missing confirm=true parameter or unfiltered bulk deletion attempted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.delete("/", async (req, res) => {
   const confirm = req.query.confirm === "true";
   const userId = req.user.id;
