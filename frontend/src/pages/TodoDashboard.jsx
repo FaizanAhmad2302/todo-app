@@ -24,6 +24,7 @@ export default function TodoDashboard() {
   const [isAdding, setIsAdding] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
   const [filter, setFilter] = useState("all"); // 'all', 'active', 'completed'
+  const [sort, setSort] = useState(""); // '', 'dueDate'
   const [searchQuery, setSearchQuery] = useState("");
 
   const showToast = (message, type = "success") => {
@@ -39,7 +40,7 @@ export default function TodoDashboard() {
       if (filter === "active") completedParam = false;
       if (filter === "completed") completedParam = true;
 
-      const data = await getTodos(completedParam);
+      const data = await getTodos(completedParam, sort);
       setTodos(data);
     } catch (err) {
       setError(err.message || "Failed to load tasks");
@@ -47,13 +48,13 @@ export default function TodoDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [filter]);
+  }, [filter, sort]);
 
   useEffect(() => {
     loadTodos();
   }, [loadTodos]);
 
-  const handleAddTodo = async (title, onSuccess) => {
+  const handleAddTodo = async (title, dueDate, onSuccess) => {
     const isDuplicate = todos.some(
       (t) => t.title.toLowerCase() === title.toLowerCase()
     );
@@ -69,7 +70,7 @@ export default function TodoDashboard() {
 
     try {
       setIsAdding(true);
-      await createTodo(title);
+      await createTodo(title, dueDate);
       showToast("Task added successfully!");
       if (onSuccess) onSuccess();
       // Only reload if we are on 'all' or 'active', otherwise the new task wouldn't show up in 'completed' anyway
@@ -205,6 +206,22 @@ export default function TodoDashboard() {
             onClick={() => setFilter("completed")}
           >
             Completed
+          </button>
+        </div>
+
+        <div className="nav-section">
+          <span className="nav-heading">Sort By</span>
+          <button
+            className={`nav-link ${sort === "" ? "active" : ""}`}
+            onClick={() => setSort("")}
+          >
+            Default Order
+          </button>
+          <button
+            className={`nav-link ${sort === "dueDate" ? "active" : ""}`}
+            onClick={() => setSort("dueDate")}
+          >
+            Due Date
           </button>
         </div>
 

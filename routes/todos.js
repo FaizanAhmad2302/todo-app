@@ -48,6 +48,13 @@ function parseCompleted(value) {
  *           enum: ["true", "false"]
  *         required: false
  *         description: Filter by completion status. Omit to return all todos.
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: ["dueDate"]
+ *         required: false
+ *         description: Sort the returned todos. Currently supports "dueDate".
  *     responses:
  *       200:
  *         description: Array of todos (may be empty)
@@ -73,6 +80,7 @@ function parseCompleted(value) {
 router.get("/", async (req, res) => {
   const completed = parseCompleted(req.query.completed);
   const userId = req.user.id;
+  const sort = req.query.sort;
 
   if (completed === null) {
     return res
@@ -81,16 +89,16 @@ router.get("/", async (req, res) => {
   }
 
   if (completed === true) {
-    const todos = await getCompletedTodos(userId);
+    const todos = await getCompletedTodos(userId, sort);
     return res.status(200).json(todos);
   }
 
   if (completed === false) {
-    const todos = await getIncompleteTodos(userId);
+    const todos = await getIncompleteTodos(userId, sort);
     return res.status(200).json(todos);
   }
 
-  const todos = await getTodos(userId);
+  const todos = await getTodos(userId, sort);
   res.status(200).json(todos);
 });
 
@@ -197,10 +205,10 @@ router.get("/:id", async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post("/", async (req, res) => {
-  const { title } = req.body;
+  const { title, dueDate } = req.body;
   const userId = req.user.id;
 
-  const todoNumber = await addTodo(userId, title);
+  const todoNumber = await addTodo(userId, title, dueDate);
   const todo = await getTodo(userId, todoNumber);
 
   res.status(201).json(todo);
@@ -269,9 +277,9 @@ router.patch("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;
 
-  const { title, completed } = req.body;
+  const { title, completed, dueDate } = req.body;
 
-  const allowedFields = ["title", "completed"];
+  const allowedFields = ["title", "completed", "dueDate"];
   const unknownFields = Object.keys(req.body).filter(
     (key) => !allowedFields.includes(key)
   );
@@ -282,10 +290,10 @@ router.patch("/:id", async (req, res) => {
     });
   }
 
-  if (title === undefined && completed === undefined) {
-    return res
-      .status(400)
-      .json({ error: "At least one field (title or completed) is required" });
+  if (title === undefined && completed === undefined && dueDate === undefined) {
+    return res.status(400).json({
+      error: "At least one field (title, completed, or dueDate) is required",
+    });
   }
 
   if (completed !== undefined && typeof completed !== "boolean") {
@@ -295,6 +303,7 @@ router.patch("/:id", async (req, res) => {
   const updatedTodo = await updateTodo(userId, todoNumber, {
     title,
     completed,
+    dueDate,
   });
 
   if (!updatedTodo) {

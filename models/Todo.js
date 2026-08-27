@@ -22,6 +22,11 @@ const todoSchema = new mongoose.Schema(
       default: false,
     },
 
+    dueDate: {
+      type: Date,
+      required: false,
+    },
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

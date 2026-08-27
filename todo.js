@@ -30,22 +30,45 @@ function validateTodoNumber(todoNumber) {
   }
 }
 
-async function addTodo(userId, title) {
+function validateDueDate(dateString, isNew = false) {
+  if (dateString === undefined) return undefined;
+  if (dateString === null) return null;
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    throw new ValidationError("Invalid due date");
+  }
+
+  if (isNew && date < new Date()) {
+    throw new ValidationError("Due date cannot be in the past");
+  }
+
+  return date;
+}
+
+async function addTodo(userId, title, dueDate) {
   title = validateTitle(title);
+  const validatedDueDate = validateDueDate(dueDate, true);
 
   const todoNumber = await repository.getNextNumber();
 
-  const todo = await repository.create({
+  const data = {
     userId,
     todoNumber,
     title,
-  });
+  };
+
+  if (validatedDueDate) {
+    data.dueDate = validatedDueDate;
+  }
+
+  const todo = await repository.create(data);
 
   return todo.todoNumber;
 }
 
-async function getTodos(userId) {
-  return await repository.findAll(userId);
+async function getTodos(userId, sortBy) {
+  return await repository.findAll(userId, sortBy);
 }
 
 async function getTodo(userId, todoNumber) {
@@ -81,11 +104,19 @@ async function renameTodo(userId, todoNumber, title) {
   return updatedTodo !== null;
 }
 
-async function updateTodo(userId, todoNumber, { title, completed }) {
+async function updateTodo(userId, todoNumber, { title, completed, dueDate }) {
   validateTodoNumber(todoNumber);
   const update = {};
   if (title !== undefined) update.title = validateTitle(title);
   if (completed !== undefined) update.completed = completed;
+  if (dueDate !== undefined) {
+    const validatedDueDate = validateDueDate(dueDate, false);
+    if (validatedDueDate === null) {
+      update.$unset = { dueDate: 1 };
+    } else {
+      update.dueDate = validatedDueDate;
+    }
+  }
 
   return await repository.update(userId, todoNumber, update);
 }
@@ -104,12 +135,12 @@ async function deleteAllTodos(userId) {
   return result.deletedCount;
 }
 
-async function getCompletedTodos(userId) {
-  return await repository.findCompleted(userId);
+async function getCompletedTodos(userId, sortBy) {
+  return await repository.findCompleted(userId, sortBy);
 }
 
-async function getIncompleteTodos(userId) {
-  return await repository.findIncomplete(userId);
+async function getIncompleteTodos(userId, sortBy) {
+  return await repository.findIncomplete(userId, sortBy);
 }
 
 async function deleteCompletedTodos(userId) {
@@ -125,8 +156,8 @@ async function deleteIncompleteTodos(userId) {
 }
 
 // Admin Methods
-async function getAllTodosAdmin() {
-  return await repository.findAllAdmin();
+async function getAllTodosAdmin(sortBy) {
+  return await repository.findAllAdmin(sortBy);
 }
 
 module.exports = {
@@ -143,4 +174,5 @@ module.exports = {
   deleteCompletedTodos,
   deleteIncompleteTodos,
   getAllTodosAdmin,
+  validateDueDate,
 };

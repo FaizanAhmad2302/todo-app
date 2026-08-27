@@ -4,7 +4,7 @@ const { authenticate, requireAdmin } = require("../middleware/auth");
 const User = require("../models/User");
 const Session = require("../models/Session");
 const Todo = require("../models/Todo");
-const { getAllTodosAdmin } = require("../todo");
+const { getAllTodosAdmin, validateDueDate } = require("../todo");
 
 const router = express.Router();
 
@@ -172,6 +172,14 @@ router.patch("/users/:id/disable", async (req, res) => {
  *     tags: [Admin]
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: ["dueDate"]
+ *         required: false
+ *         description: Sort the returned todos. Currently supports "dueDate".
  *     responses:
  *       200:
  *         description: Array of all todos
@@ -202,7 +210,8 @@ router.patch("/users/:id/disable", async (req, res) => {
  */
 router.get("/todos", async (req, res) => {
   try {
-    const todos = await getAllTodosAdmin();
+    const sort = req.query.sort;
+    const todos = await getAllTodosAdmin(sort);
     res.status(200).json(todos);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch all todos" });
@@ -282,7 +291,7 @@ router.get("/todos", async (req, res) => {
  */
 router.patch("/todos/:id", async (req, res) => {
   try {
-    const { title, completed } = req.body;
+    const { title, completed, dueDate } = req.body;
     const updateData = {};
     if (title !== undefined) {
       if (typeof title !== "string" || !title.trim()) {
@@ -295,6 +304,14 @@ router.patch("/todos/:id", async (req, res) => {
         return res.status(400).json({ error: "completed must be a boolean" });
       }
       updateData.completed = completed;
+    }
+    if (dueDate !== undefined) {
+      const validatedDueDate = validateDueDate(dueDate, false);
+      if (validatedDueDate === null) {
+        updateData.$unset = { dueDate: 1 };
+      } else {
+        updateData.dueDate = validatedDueDate;
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
