@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { apiFetch } from '../services/todoApi';
 import { Toast } from '../components/Toast';
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || '';
+  const location = useLocation();
+  const email = location.state?.email || '';
   
+  const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,8 +20,13 @@ export default function ResetPassword() {
     e.preventDefault();
     setError('');
     
-    if (!token) {
-      setError('Missing reset token in URL');
+    if (!email) {
+      setError('Missing email address. Please start from the Forgot Password page.');
+      return;
+    }
+
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit reset code');
       return;
     }
 
@@ -41,9 +47,9 @@ export default function ResetPassword() {
 
     try {
       setLoading(true);
-      const res = await apiFetch('/auth/reset-password', {
+      await apiFetch('/auth/reset-password', {
         method: 'POST',
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({ email, otp, newPassword }),
       });
       setSuccess('Password reset successfully! Redirecting to login...');
       setTimeout(() => navigate('/login'), 2000);
@@ -54,6 +60,19 @@ export default function ResetPassword() {
     }
   };
 
+  if (!email) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <p>No email provided. Please start over.</p>
+          <button onClick={() => navigate('/forgot-password')} className="auth-btn" style={{ marginTop: '1rem' }}>
+            Go to Forgot Password
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-container">
       {error && <Toast message={error} type="error" onClose={() => setError('')} />}
@@ -61,10 +80,21 @@ export default function ResetPassword() {
       <div className="auth-card">
         <div className="auth-header">
           <h1>Reset Password</h1>
-          <p>Choose a new password</p>
+          <p>Enter the 6-digit code sent to {email}</p>
         </div>
         
         <form className="auth-form" onSubmit={handleSubmit}>
+          <div>
+            <input
+              type="text"
+              placeholder="6-digit Code"
+              className="auth-input"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={loading || success}
+              required
+            />
+          </div>
           <div>
             <input
               type="password"
@@ -72,7 +102,7 @@ export default function ResetPassword() {
               className="auth-input"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              disabled={loading || success || !token}
+              disabled={loading || success}
               required
             />
           </div>
@@ -83,11 +113,11 @@ export default function ResetPassword() {
               className="auth-input"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={loading || success || !token}
+              disabled={loading || success}
               required
             />
           </div>
-          <button type="submit" className="auth-btn" disabled={loading || success || !token}>
+          <button type="submit" className="auth-btn" disabled={loading || success || otp.length !== 6}>
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>

@@ -4,6 +4,7 @@ const todoRouter = require("./routes/todos");
 const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admin");
+const profileRouter = require("./routes/profile");
 
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
@@ -54,6 +55,7 @@ app.use((req, res, next) => {
 
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
+app.use("/profile", profileRouter);
 app.use("/todos", todoRouter);
 
 app.use((req, res) => {

@@ -11,6 +11,7 @@ async function createTestUser(email = "test@example.com", password = "Password12
     passwordHash,
     role,
     isActive: true,
+    isVerified: true,
   });
   return user;
 }

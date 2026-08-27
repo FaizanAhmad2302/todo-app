@@ -23,10 +23,14 @@ export default function Login() {
 
     try {
       setLoading(true);
-      await login(email, password);
-      navigate('/');
+      const user = await login(email, password);
+      navigate(user.role === 'admin' ? '/admin' : '/');
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      if (err.data && err.data.requiresOtp) {
+        navigate('/verify-otp', { state: { email: err.data.email || email } });
+      } else {
+        setError(err.message || 'Failed to login');
+      }
     } finally {
       setLoading(false);
     }

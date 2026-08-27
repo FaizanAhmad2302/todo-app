@@ -36,9 +36,13 @@ export default function Signup() {
 
     try {
       setLoading(true);
-      await signup(name, email, password);
-      setSuccess('Account created successfully! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 2000);
+      const res = await signup(name, email, password);
+      if (res && res.requiresOtp) {
+        navigate('/verify-otp', { state: { email: res.email } });
+      } else {
+        setSuccess('Account created successfully! Redirecting to login...');
+        setTimeout(() => navigate('/login'), 2000);
+      }
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {

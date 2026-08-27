@@ -41,6 +41,7 @@ async function createAdmin() {
       email: email.toLowerCase().trim(),
       passwordHash,
       role: 'admin',
+      isVerified: true,
     });
 
     console.log(`Admin user created successfully for email: ${email}`);

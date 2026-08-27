@@ -43,12 +43,9 @@ describe("Auth API", () => {
   });
 
   test("login creates a session and sets cookies", async () => {
-    // Signup first
-    await fetch(`${baseUrl}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Login Test", email: "login@example.com", password: "password123" }),
-    });
+    // Signup via helper to get verified user
+    const { createTestUser } = require("./testHelpers");
+    await createTestUser("login@example.com", "password123");
 
     // Login
     const res = await fetch(`${baseUrl}/auth/login`, {

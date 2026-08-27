@@ -8,6 +8,10 @@ export const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
+  if (currentUser.role === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <Outlet />;
 };
 
@@ -24,3 +28,14 @@ export const AdminRoute = () => {
 
   return <Outlet />;
 };
+
+export const AuthenticatedRoute = () => {
+  const { currentUser } = useAuth();
+  
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
+

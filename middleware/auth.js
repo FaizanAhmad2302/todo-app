@@ -26,7 +26,12 @@ const authenticate = async (req, res, next) => {
       }
     }
 
-    req.user = { id: user._id.toString(), role: user.role };
+    req.user = { 
+      id: user._id.toString(), 
+      name: user.name, 
+      email: user.email, 
+      role: user.role 
+    };
     next();
   } catch (err) {
     // If token is expired or invalid

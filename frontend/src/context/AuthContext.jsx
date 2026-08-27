@@ -43,10 +43,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (name, email, password) => {
-    await apiFetch('/auth/signup', {
+    const res = await apiFetch('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ name, email, password }),
     });
+    return res;
+  };
+
+  const verifyOtp = async (email, otp) => {
+    const res = await apiFetch('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
+    });
+    setCurrentUser(res.user);
+    return res;
+  };
+
+  const reloadUser = async () => {
+    const res = await apiFetch('/auth/me');
+    setCurrentUser(res.user);
+    return res.user;
   };
 
   const logout = async () => {
@@ -64,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, loading, login, signup, logout, forceLogout }}>
+    <AuthContext.Provider value={{ currentUser, loading, login, signup, verifyOtp, logout, forceLogout, reloadUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );

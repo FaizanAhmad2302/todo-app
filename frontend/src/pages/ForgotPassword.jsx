@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../services/todoApi';
 import { Toast } from '../components/Toast';
 
 export default function ForgotPassword() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -26,6 +27,9 @@ export default function ForgotPassword() {
         body: JSON.stringify({ email }),
       });
       setMessage(res.message);
+      if (res.requiresOtp) {
+        setTimeout(() => navigate('/reset-password', { state: { email } }), 1500);
+      }
     } catch (err) {
       setError(err.message || 'Failed to request password reset');
     } finally {

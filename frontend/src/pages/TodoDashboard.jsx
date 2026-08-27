@@ -202,6 +202,9 @@ export default function TodoDashboard() {
 
         <div className="nav-section" style={{ marginTop: 'auto' }}>
           <span className="nav-heading">Account</span>
+          <Link to="/profile" className="nav-link" style={{ marginBottom: '8px' }}>
+            Profile Settings
+          </Link>
           {currentUser?.role === 'admin' && (
             <Link to="/admin" className="nav-link" style={{ marginBottom: '8px' }}>
               Admin Dashboard

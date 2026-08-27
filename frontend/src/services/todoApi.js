@@ -1,11 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, data) {
     super(message);
     this.status = status;
+    this.data = data || {};
   }
 }
+
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -71,13 +73,14 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
     }
 
     let errorMessage = 'An unexpected error occurred';
+    let errorData = {};
     try {
-      const errorData = await response.json();
+      errorData = await response.json();
       errorMessage = errorData.error || errorMessage;
     } catch {
       errorMessage = response.statusText;
     }
-    throw new ApiError(errorMessage, response.status);
+    throw new ApiError(errorMessage, response.status, errorData);
   }
 
   if (response.status === 204) {
@@ -146,4 +149,23 @@ export const toggleAdminUser = async (id, isActive) => {
 
 export const getAdminTodos = async () => {
   return apiFetch('/admin/todos');
+};
+
+export const adminUpdateTodo = async (id, updates) => {
+  return apiFetch(`/admin/todos/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+};
+
+export const adminDeleteTodo = async (id) => {
+  return apiFetch(`/admin/todos/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+export const adminDeleteUser = async (id) => {
+  return apiFetch(`/admin/users/${id}`, {
+    method: 'DELETE',
+  });
 };
