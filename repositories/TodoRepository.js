@@ -6,7 +6,17 @@ class TodoRepository {
     return await Todo.create(data);
   }
 
-  async findAll(userId) {
+  async findAll(userId, sortBy) {
+    if (sortBy === "dueDate") {
+      const [withDates, withoutDates] = await Promise.all([
+        Todo.find({ userId, dueDate: { $ne: null } }).sort({
+          dueDate: 1,
+          todoNumber: 1,
+        }),
+        Todo.find({ userId, dueDate: null }).sort({ todoNumber: 1 }),
+      ]);
+      return [...withDates, ...withoutDates];
+    }
     return await Todo.find({ userId }).sort({ todoNumber: 1 });
   }
 
@@ -29,11 +39,35 @@ class TodoRepository {
     return await Todo.deleteMany({ userId });
   }
 
-  async findCompleted(userId) {
+  async findCompleted(userId, sortBy) {
+    if (sortBy === "dueDate") {
+      const [withDates, withoutDates] = await Promise.all([
+        Todo.find({ userId, completed: true, dueDate: { $ne: null } }).sort({
+          dueDate: 1,
+          todoNumber: 1,
+        }),
+        Todo.find({ userId, completed: true, dueDate: null }).sort({
+          todoNumber: 1,
+        }),
+      ]);
+      return [...withDates, ...withoutDates];
+    }
     return await Todo.find({ userId, completed: true }).sort({ todoNumber: 1 });
   }
 
-  async findIncomplete(userId) {
+  async findIncomplete(userId, sortBy) {
+    if (sortBy === "dueDate") {
+      const [withDates, withoutDates] = await Promise.all([
+        Todo.find({ userId, completed: false, dueDate: { $ne: null } }).sort({
+          dueDate: 1,
+          todoNumber: 1,
+        }),
+        Todo.find({ userId, completed: false, dueDate: null }).sort({
+          todoNumber: 1,
+        }),
+      ]);
+      return [...withDates, ...withoutDates];
+    }
     return await Todo.find({ userId, completed: false }).sort({
       todoNumber: 1,
     });
@@ -58,7 +92,17 @@ class TodoRepository {
   }
 
   // Admin Methods
-  async findAllAdmin() {
+  async findAllAdmin(sortBy) {
+    if (sortBy === "dueDate") {
+      const [withDates, withoutDates] = await Promise.all([
+        Todo.find({ dueDate: { $ne: null } }).sort({
+          dueDate: 1,
+          todoNumber: 1,
+        }),
+        Todo.find({ dueDate: null }).sort({ todoNumber: 1 }),
+      ]);
+      return [...withDates, ...withoutDates];
+    }
     return await Todo.find().sort({ todoNumber: 1 });
   }
 }

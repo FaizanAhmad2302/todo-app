@@ -176,6 +176,13 @@ const swaggerDefinition = {
             maxLength: 50,
             description: "Todo title (1-50 characters, trimmed)",
           },
+          dueDate: {
+            type: "string",
+            format: "date-time",
+            example: "2026-12-31T23:59:59.000Z",
+            description:
+              "Optional due date and time. Must not be in the past when creating.",
+          },
         },
       },
       TodoUpdateRequest: {
@@ -193,9 +200,16 @@ const swaggerDefinition = {
             example: true,
             description: "Completion status",
           },
+          dueDate: {
+            type: "string",
+            format: "date-time",
+            example: "2026-12-31T23:59:59.000Z",
+            description: "Updated due date. Send null to remove.",
+            nullable: true,
+          },
         },
         description:
-          "At least one field (title or completed) is required. Unknown fields are rejected.",
+          "At least one field (title, completed, or dueDate) is required. Unknown fields are rejected.",
       },
       AdminTodoUpdateRequest: {
         type: "object",
@@ -209,6 +223,13 @@ const swaggerDefinition = {
             type: "boolean",
             example: true,
             description: "New completion status",
+          },
+          dueDate: {
+            type: "string",
+            format: "date-time",
+            example: "2026-12-31T23:59:59.000Z",
+            description: "New due date. Send null to remove.",
+            nullable: true,
           },
         },
         description:
@@ -351,6 +372,12 @@ const swaggerDefinition = {
             maxLength: 50,
           },
           completed: { type: "boolean", example: false },
+          dueDate: {
+            type: "string",
+            format: "date-time",
+            example: "2026-12-31T23:59:59.000Z",
+            nullable: true,
+          },
           userId: { type: "string", example: "507f1f77bcf86cd799439011" },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },

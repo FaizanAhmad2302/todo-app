@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 export function TodoForm({ onSubmit, isSubmitting }) {
   const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -18,9 +19,20 @@ export function TodoForm({ onSubmit, isSubmitting }) {
       return;
     }
 
+    if (dueDate) {
+      const selectedDate = new Date(dueDate);
+      if (selectedDate < new Date()) {
+        setError("Due date cannot be in the past");
+        return;
+      }
+    }
+
     setError("");
-    onSubmit(trimmedTitle, () => {
+    const isoDueDate = dueDate ? new Date(dueDate).toISOString() : null;
+
+    onSubmit(trimmedTitle, isoDueDate, () => {
       setTitle("");
+      setDueDate("");
     });
   };
 
@@ -37,6 +49,20 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           maxLength={50}
           aria-label="New todo title"
           autoFocus
+        />
+        <input
+          type="datetime-local"
+          className="pill-input"
+          style={{
+            flex: "0 0 auto",
+            width: "auto",
+            borderLeft: "1px solid var(--border)",
+            borderRadius: 0,
+          }}
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          disabled={isSubmitting}
+          aria-label="Due date"
         />
         <button
           type="submit"

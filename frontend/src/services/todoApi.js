@@ -95,10 +95,14 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
 }
 
 // Todo specific exports
-export const getTodos = async (completed) => {
+export const getTodos = async (completed, sort) => {
   let url = "/todos";
-  if (completed !== undefined) {
-    url += `?completed=${completed}`;
+  const params = [];
+  if (completed !== undefined) params.push(`completed=${completed}`);
+  if (sort) params.push(`sort=${sort}`);
+
+  if (params.length > 0) {
+    url += `?${params.join("&")}`;
   }
   return apiFetch(url);
 };
@@ -107,10 +111,12 @@ export const getTodo = async (id) => {
   return apiFetch(`/todos/${id}`);
 };
 
-export const createTodo = async (title) => {
+export const createTodo = async (title, dueDate) => {
+  const body = { title };
+  if (dueDate) body.dueDate = dueDate;
   return apiFetch("/todos", {
     method: "POST",
-    body: JSON.stringify({ title }),
+    body: JSON.stringify(body),
   });
 };
 
