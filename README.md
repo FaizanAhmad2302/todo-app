@@ -1,12 +1,13 @@
-# ✅ Todo App (Full-Stack)
+# ✅ Todo App (Secure Full-Stack Application)
 
-> A modern, full-stack Todo application featuring a **React + Vite** frontend, alongside a **CLI** and an **HTTP API**, built with **Node.js**, **Express 5**, and **MongoDB**.
+> A modern, highly secure full-stack Todo application featuring a **React + Vite** frontend and a robust **HTTP API**, built with **Node.js**, **Express 5**, and **MongoDB**.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?logo=swagger&logoColor=black)
 ![License](https://img.shields.io/badge/License-ISC-blue)
 
 ---
@@ -16,27 +17,38 @@
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Frontend UI](#frontend-ui)
-- [CLI Usage](#cli-usage)
-- [HTTP API](#http-api)
+- [Security Architecture](#security-architecture)
+- [API Documentation](#api-documentation)
 - [Running Tests](#running-tests)
 - [Project Structure](#project-structure)
-- [Environment Variables](#environment-variables)
 - [License](#license)
 
 ---
 
 ## Features
 
-- **Beautiful React Frontend** built with Vite and pure CSS.
-- **Real-time Client-Side Search** and dynamic filtering (Active/Completed).
-- **Create** todos with a title (strictly validated up to 50 characters).
-- **List** all, completed, or incomplete todos.
-- **Toggle** completion status seamlessly.
-- **Rename** existing todos inline.
-- **Delete** individual todos and execute **Bulk clear** operations with safeguards.
-- **HTTP API** with Express 5 featuring rate limiting, CORS protection, and proper status codes.
-- **CLI Mode** for managing tasks directly from your terminal.
+This application implements a complete feature set for managing users, sessions, and tasks securely.
+
+### 🔐 Authentication & Security
+- **Email Verification**: Mandatory 6-digit OTP email verification for new accounts.
+- **JWT & Cookies**: Secure HttpOnly, SameSite cookies for authentication; localStorage is completely avoided.
+- **Refresh Token Rotation**: Automatic token refresh with reuse detection that instantly revokes compromised sessions.
+- **Session Revocation**: Passwords resets, logouts, or administrator interventions instantly invalidate active sessions.
+- **CSRF & CORS**: Strict origin-checking middleware to prevent Cross-Site Request Forgery.
+- **Rate Limiting**: Protection against brute-force attacks on sensitive endpoints.
+
+### 📝 Todo Management
+- **User Isolation**: Users can securely create, view, update, and delete their own tasks with strict privacy boundaries.
+- **Bulk Deletion**: Easily clear all completed or incomplete tasks with built-in safety confirmations.
+- **Atomic IDs**: Todos are numbered sequentially per user (e.g., Task 1, Task 2) rather than using complex database IDs.
+
+### 👤 Profile Management
+- **Secure Updates**: Display name changes and password resets require OTP verification and/or current password validation.
+- **Protected Fields**: The system prevents unauthorized tampering with roles, emails, or account status flags.
+
+### 🛡️ Administrative Interface
+- **Global Oversight**: Administrators can view, edit, or delete any task in the entire system.
+- **User Moderation**: Administrators can view all standard users, toggle their active status (instantly terminating sessions), or delete accounts entirely (cascading deletes to associated tasks).
 
 ---
 
@@ -60,19 +72,20 @@ cd todo-app
 
 ### 2. Configure Backend Environment
 
-Copy the example file and fill in your MongoDB connection strings:
+Copy the example file and configure your credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-```env
-MONGODB_URI=mongodb://localhost:27017/todoapp
-PORT=3000
-```
+Ensure the following variables are properly set in your `.env` file:
+- `MONGODB_URI`
+- `JWT_SECRET` & `JWT_REFRESH_SECRET`
+- `RESEND_API_KEY` (for OTP emails)
+- `FRONTEND_URL` & `BACKEND_URL`
 
 > [!IMPORTANT]
-> The `.env` file contains credentials and **must not** be committed to version control.
+> The `.env` file contains sensitive credentials and **must not** be committed to version control.
 
 ### 3. Start the Backend API
 
@@ -80,11 +93,11 @@ PORT=3000
 # Install backend dependencies
 npm install
 
-# Start the Express server
-node server.js
+# Start the Express server in development mode
+npm run dev
 ```
 
-_The backend server will start on port 3000._
+*The backend server will start on port 3000.*
 
 ### 4. Start the Frontend UI
 
@@ -100,65 +113,40 @@ npm install
 npm run dev
 ```
 
-_The UI will be available at `http://localhost:5173`. Open this URL in your browser._
+*The UI will be available at `http://localhost:5173`. Open this URL in your browser.*
 
 ---
 
-## Frontend UI
+## Security Architecture
 
-The frontend is a fully responsive Single Page Application (SPA) located in the `/frontend` directory.
-
-- It uses `todoApi.js` to communicate with the Express backend via the `fetch` API.
-- All backend errors (like Rate Limiting or network issues) are gracefully caught and displayed as UI Toasts.
-- To configure the frontend API URL, you can create a `.env` file inside the `frontend` folder:
-  ```env
-  VITE_API_URL=http://localhost:3000/todos
-  ```
+The backend strictly enforces the following security measures:
+- **Passwords**: Hashed with `bcrypt` (Salt rounds: 10).
+- **Authentication**: JWTs are transmitted *only* via `HttpOnly` cookies. The payload never contains sensitive user information.
+- **Authorization**: Role-based middleware intercepts requests to `/admin/*` routes, rejecting any non-administrators with a `403 Forbidden` status.
+- **Data Integrity**: Input validation ensures that only allowed fields are processed. Unknown fields are rejected with a `400 Bad Request`.
 
 ---
 
-## CLI Usage
+## API Documentation
 
-You can also manage your tasks completely from the terminal! Run commands with `node index.js <command>`.
+The backend provides interactive **Swagger/OpenAPI 3.0.3** documentation, allowing developers to visually explore and test the API.
 
-| Command                               | Description                              |
-| ------------------------------------- | ---------------------------------------- |
-| `node index.js add "title"`           | Create a new todo                        |
-| `node index.js list`                  | List all todos                           |
-| `node index.js list --completed`      | List completed todos                     |
-| `node index.js done <number>`         | Toggle todo completion status            |
-| `node index.js edit <number> "title"` | Rename a todo                            |
-| `node index.js rm <number>`           | Delete a single todo (with confirmation) |
-| `node index.js clear --completed`     | Delete all completed todos               |
-
----
-
-## HTTP API
-
-The HTTP API is served by Express 5. All endpoints are under `/todos`.
-
-| Method   | Path                    | Body                                                | Description            |
-| -------- | ----------------------- | --------------------------------------------------- | ---------------------- |
-| `GET`    | `/todos`                | —                                                   | List all todos         |
-| `GET`    | `/todos?completed=true` | —                                                   | List completed todos   |
-| `POST`   | `/todos`                | `{ "title": "Buy milk" }`                           | Create a todo          |
-| `PATCH`  | `/todos/:id`            | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo          |
-| `DELETE` | `/todos/:id`            | —                                                   | Delete one todo        |
-| `DELETE` | `/todos?completed=true` | —                                                   | Delete completed todos |
-
-_(Note: Unfiltered bulk deletion `DELETE /todos` is intentionally blocked by the API for safety)._
+- **URL**: `http://localhost:3000/api-docs`
+- **Configuration**: Ensure `SWAGGER_ENABLED=true` is set in your `.env` file.
+- **Authentication**: You can authenticate directly inside the Swagger UI by calling the `/auth/login` endpoint. The browser will store the secure cookies and allow you to test protected endpoints seamlessly.
 
 ---
 
 ## Running Tests
 
-The project uses the **Node.js built-in test runner**:
+The project utilizes the **Node.js built-in test runner** to execute a comprehensive suite of 100+ tests spanning authentication, security, authorization, and standard functionality.
 
 ```bash
+# Run the complete test suite
 npm test
 ```
 
-Tests connect to the database specified by `MONGODB_TEST_URI`, keeping test data fully isolated from your main database.
+> Tests run against the database specified by `MONGODB_TEST_URI`, ensuring that your development data remains completely isolated and untouched.
 
 ---
 
@@ -166,34 +154,20 @@ Tests connect to the database specified by `MONGODB_TEST_URI`, keeping test data
 
 ```text
 todo_app/
-├── server.js                # HTTP entry point — starts Express
-├── app.js                   # Express app setup, CORS, rate limiting
-├── index.js                 # CLI entry point
-├── todo.js                  # Core business logic
-├── models/
-│   ├── Counter.js           # Atomic ID generation schema
-│   └── Todo.js              # Mongoose schema
-├── repositories/
-│   └── TodoRepository.js    # Database access layer
-├── routes/
-│   └── todos.js             # HTTP API endpoints
-├── frontend/                # React SPA
-│   ├── index.html
-│   ├── vite.config.js
-│   └── src/
-│       ├── App.jsx          # Main UI state and layout
-│       ├── index.css        # Vanilla CSS styling
-│       ├── components/      # React components (TodoForm, TodoItem, etc.)
-│       └── services/
-│           └── todoApi.js   # HTTP fetch wrappers
-└── test/
-    └── todo.test.js         # Automated test suite
-```
-
-### Architecture Flow
-
-```text
-React Frontend ──▶ Express API (app.js) ──▶ Business Logic (todo.js) ──▶ Repository ──▶ MongoDB
+├── server.js                # Application entry point
+├── app.js                   # Express configuration, CORS, rate limiting
+├── swagger.js               # OpenAPI/Swagger configuration
+├── routes/                  # API Endpoints
+│   ├── auth.js              # Authentication, Registration, OTP
+│   ├── profile.js           # Secure profile updates
+│   ├── todos.js             # Task management
+│   └── admin.js             # Administrative oversight
+├── middleware/              # Security and Authorization logic
+├── models/                  # Mongoose Schemas (User, Todo, OTP, Session, Counter)
+├── repositories/            # Database access and abstraction layer
+├── frontend/                # React Single Page Application
+│   └── src/                 # UI components and state
+└── test/                    # Comprehensive integration tests
 ```
 
 ---
