@@ -11,9 +11,9 @@ async function connect() {
     // If the developer provided a real test URI, use it.
     await connectDatabase(process.env.MONGODB_TEST_URI);
   } else {
-    // Otherwise, dynamically spin up an in-memory MongoDB instance (zero-config testing!)
-    const { MongoMemoryServer } = require("mongodb-memory-server");
-    mongoServer = await MongoMemoryServer.create();
+    // Otherwise, dynamically spin up an in-memory MongoDB Replica Set (supports transactions!)
+    const { MongoMemoryReplSet } = require("mongodb-memory-server");
+    mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
     const uri = mongoServer.getUri();
     await connectDatabase(uri);
   }

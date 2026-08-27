@@ -24,7 +24,8 @@ export default function TodoDashboard() {
   const [isAdding, setIsAdding] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
   const [filter, setFilter] = useState("all"); // 'all', 'active', 'completed'
-  const [sort, setSort] = useState(""); // '', 'dueDate'
+  const [priorityFilter, setPriorityFilter] = useState("all"); // 'all', 'Low', 'Medium', 'High'
+  const [sort, setSort] = useState(""); // '', 'dueDate', 'priority'
   const [searchQuery, setSearchQuery] = useState("");
 
   const showToast = (message, type = "success") => {
@@ -40,7 +41,7 @@ export default function TodoDashboard() {
       if (filter === "active") completedParam = false;
       if (filter === "completed") completedParam = true;
 
-      const data = await getTodos(completedParam, sort);
+      const data = await getTodos(completedParam, sort, priorityFilter);
       setTodos(data);
     } catch (err) {
       setError(err.message || "Failed to load tasks");
@@ -48,13 +49,13 @@ export default function TodoDashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [filter, sort]);
+  }, [filter, sort, priorityFilter]);
 
   useEffect(() => {
     loadTodos();
   }, [loadTodos]);
 
-  const handleAddTodo = async (title, dueDate, onSuccess) => {
+  const handleAddTodo = async (title, dueDate, priority, onSuccess) => {
     const isDuplicate = todos.some(
       (t) => t.title.toLowerCase() === title.toLowerCase()
     );
@@ -70,7 +71,7 @@ export default function TodoDashboard() {
 
     try {
       setIsAdding(true);
-      await createTodo(title, dueDate);
+      await createTodo(title, dueDate, priority);
       showToast("Task added successfully!");
       if (onSuccess) onSuccess();
       // Only reload if we are on 'all' or 'active', otherwise the new task wouldn't show up in 'completed' anyway
@@ -210,6 +211,34 @@ export default function TodoDashboard() {
         </div>
 
         <div className="nav-section">
+          <span className="nav-heading">Priority Filter</span>
+          <button
+            className={`nav-link ${priorityFilter === "all" ? "active" : ""}`}
+            onClick={() => setPriorityFilter("all")}
+          >
+            All Priorities
+          </button>
+          <button
+            className={`nav-link ${priorityFilter === "High" ? "active" : ""}`}
+            onClick={() => setPriorityFilter("High")}
+          >
+            High Priority
+          </button>
+          <button
+            className={`nav-link ${priorityFilter === "Medium" ? "active" : ""}`}
+            onClick={() => setPriorityFilter("Medium")}
+          >
+            Medium Priority
+          </button>
+          <button
+            className={`nav-link ${priorityFilter === "Low" ? "active" : ""}`}
+            onClick={() => setPriorityFilter("Low")}
+          >
+            Low Priority
+          </button>
+        </div>
+
+        <div className="nav-section">
           <span className="nav-heading">Sort By</span>
           <button
             className={`nav-link ${sort === "" ? "active" : ""}`}
@@ -222,6 +251,12 @@ export default function TodoDashboard() {
             onClick={() => setSort("dueDate")}
           >
             Due Date
+          </button>
+          <button
+            className={`nav-link ${sort === "priority" ? "active" : ""}`}
+            onClick={() => setSort("priority")}
+          >
+            Priority
           </button>
         </div>
 

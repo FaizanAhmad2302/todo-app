@@ -6,18 +6,31 @@ class TodoRepository {
     return await Todo.create(data);
   }
 
-  async findAll(userId, sortBy) {
+  async _findWithSort(query, sortBy) {
     if (sortBy === "dueDate") {
       const [withDates, withoutDates] = await Promise.all([
-        Todo.find({ userId, dueDate: { $ne: null } }).sort({
+        Todo.find({ ...query, dueDate: { $ne: null } }).sort({
           dueDate: 1,
           todoNumber: 1,
         }),
-        Todo.find({ userId, dueDate: null }).sort({ todoNumber: 1 }),
+        Todo.find({ ...query, dueDate: null }).sort({ todoNumber: 1 }),
       ]);
       return [...withDates, ...withoutDates];
+    } else if (sortBy === "priority") {
+      const [high, medium, low] = await Promise.all([
+        Todo.find({ ...query, priority: "High" }).sort({ todoNumber: 1 }),
+        Todo.find({ ...query, priority: "Medium" }).sort({ todoNumber: 1 }),
+        Todo.find({ ...query, priority: "Low" }).sort({ todoNumber: 1 }),
+      ]);
+      return [...high, ...medium, ...low];
     }
-    return await Todo.find({ userId }).sort({ todoNumber: 1 });
+    return await Todo.find(query).sort({ todoNumber: 1 });
+  }
+
+  async findAll(userId, sortBy, priority) {
+    const query = { userId };
+    if (priority) query.priority = priority;
+    return await this._findWithSort(query, sortBy);
   }
 
   async findByNumber(userId, todoNumber) {
@@ -39,38 +52,16 @@ class TodoRepository {
     return await Todo.deleteMany({ userId });
   }
 
-  async findCompleted(userId, sortBy) {
-    if (sortBy === "dueDate") {
-      const [withDates, withoutDates] = await Promise.all([
-        Todo.find({ userId, completed: true, dueDate: { $ne: null } }).sort({
-          dueDate: 1,
-          todoNumber: 1,
-        }),
-        Todo.find({ userId, completed: true, dueDate: null }).sort({
-          todoNumber: 1,
-        }),
-      ]);
-      return [...withDates, ...withoutDates];
-    }
-    return await Todo.find({ userId, completed: true }).sort({ todoNumber: 1 });
+  async findCompleted(userId, sortBy, priority) {
+    const query = { userId, completed: true };
+    if (priority) query.priority = priority;
+    return await this._findWithSort(query, sortBy);
   }
 
-  async findIncomplete(userId, sortBy) {
-    if (sortBy === "dueDate") {
-      const [withDates, withoutDates] = await Promise.all([
-        Todo.find({ userId, completed: false, dueDate: { $ne: null } }).sort({
-          dueDate: 1,
-          todoNumber: 1,
-        }),
-        Todo.find({ userId, completed: false, dueDate: null }).sort({
-          todoNumber: 1,
-        }),
-      ]);
-      return [...withDates, ...withoutDates];
-    }
-    return await Todo.find({ userId, completed: false }).sort({
-      todoNumber: 1,
-    });
+  async findIncomplete(userId, sortBy, priority) {
+    const query = { userId, completed: false };
+    if (priority) query.priority = priority;
+    return await this._findWithSort(query, sortBy);
   }
 
   async deleteCompleted(userId) {
@@ -92,18 +83,10 @@ class TodoRepository {
   }
 
   // Admin Methods
-  async findAllAdmin(sortBy) {
-    if (sortBy === "dueDate") {
-      const [withDates, withoutDates] = await Promise.all([
-        Todo.find({ dueDate: { $ne: null } }).sort({
-          dueDate: 1,
-          todoNumber: 1,
-        }),
-        Todo.find({ dueDate: null }).sort({ todoNumber: 1 }),
-      ]);
-      return [...withDates, ...withoutDates];
-    }
-    return await Todo.find().sort({ todoNumber: 1 });
+  async findAllAdmin(sortBy, priority) {
+    const query = {};
+    if (priority) query.priority = priority;
+    return await this._findWithSort(query, sortBy);
   }
 }
 

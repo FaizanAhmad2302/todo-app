@@ -12,6 +12,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
   const [editDueDate, setEditDueDate] = useState(toDatetimeLocal(todo.dueDate));
+  const [editPriority, setEditPriority] = useState(todo.priority || "Medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleToggle = async () => {
@@ -31,10 +32,15 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       setIsEditing(false);
       setEditTitle(todo.title);
       setEditDueDate(toDatetimeLocal(todo.dueDate));
+      setEditPriority(todo.priority || "Medium");
       return;
     }
 
-    if (trimmedTitle === todo.title && isoDueDate === currentIsoDueDate) {
+    if (
+      trimmedTitle === todo.title &&
+      isoDueDate === currentIsoDueDate &&
+      editPriority === (todo.priority || "Medium")
+    ) {
       setIsEditing(false);
       return;
     }
@@ -43,6 +49,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
     await onUpdate(todo.todoNumber, {
       title: trimmedTitle,
       dueDate: isoDueDate,
+      priority: editPriority,
     });
     setIsSubmitting(false);
     setIsEditing(false);
@@ -54,6 +61,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       setIsEditing(false);
       setEditTitle(todo.title);
       setEditDueDate(toDatetimeLocal(todo.dueDate));
+      setEditPriority(todo.priority || "Medium");
     }
   };
 
@@ -94,6 +102,17 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
             onChange={(e) => setEditDueDate(e.target.value)}
             disabled={isSubmitting}
           />
+          <select
+            className="edit-input"
+            style={{ width: "auto" }}
+            value={editPriority}
+            onChange={(e) => setEditPriority(e.target.value)}
+            disabled={isSubmitting}
+          >
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
           <div className="todo-actions" style={{ opacity: 1 }}>
             <button
               className="btn-primary"
@@ -108,6 +127,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
                 setIsEditing(false);
                 setEditTitle(todo.title);
                 setEditDueDate(toDatetimeLocal(todo.dueDate));
+                setEditPriority(todo.priority || "Medium");
               }}
               disabled={isSubmitting}
             >
@@ -117,7 +137,31 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
         </div>
       ) : (
         <div className="todo-content">
-          <span className="todo-title">{todo.title}</span>
+          <span className="todo-title">
+            {todo.title}
+            {todo.priority && (
+              <span
+                style={{
+                  marginLeft: "8px",
+                  fontSize: "0.7rem",
+                  padding: "2px 6px",
+                  borderRadius: "12px",
+                  backgroundColor:
+                    todo.priority === "High"
+                      ? "var(--accent)"
+                      : todo.priority === "Medium"
+                      ? "#f59e0b"
+                      : "var(--border)",
+                  color:
+                    todo.priority === "High" || todo.priority === "Medium"
+                      ? "white"
+                      : "var(--text-muted)",
+                }}
+              >
+                {todo.priority}
+              </span>
+            )}
+          </span>
           {todo.dueDate && (
             <span
               style={{

@@ -4,11 +4,21 @@ const { authenticate, requireAdmin } = require("../middleware/auth");
 const User = require("../models/User");
 const Session = require("../models/Session");
 const Todo = require("../models/Todo");
-const { getAllTodosAdmin, validateDueDate } = require("../todo");
+const {
+  getAllTodosAdmin,
+  validateDueDate,
+  validatePriority,
+} = require("../todo");
 
 const router = express.Router();
 
 router.use(authenticate, requireAdmin);
+
+function parsePriority(value) {
+  if (value === undefined) return undefined;
+  if (["Low", "Medium", "High"].includes(value)) return value;
+  return null;
+}
 
 /**
  * @swagger
@@ -177,9 +187,16 @@ router.patch("/users/:id/disable", async (req, res) => {
  *         name: sort
  *         schema:
  *           type: string
- *           enum: ["dueDate"]
+ *           enum: ["dueDate", "priority"]
  *         required: false
- *         description: Sort the returned todos. Currently supports "dueDate".
+ *         description: Sort the returned todos. Currently supports "dueDate" and "priority".
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: ["Low", "Medium", "High"]
+ *         required: false
+ *         description: Filter by priority.
  *     responses:
  *       200:
  *         description: Array of all todos
@@ -211,7 +228,15 @@ router.patch("/users/:id/disable", async (req, res) => {
 router.get("/todos", async (req, res) => {
   try {
     const sort = req.query.sort;
-    const todos = await getAllTodosAdmin(sort);
+    const priority = parsePriority(req.query.priority);
+
+    if (priority === null) {
+      return res
+        .status(400)
+        .json({ error: 'priority must be "Low", "Medium", or "High"' });
+    }
+
+    const todos = await getAllTodosAdmin(sort, priority);
     res.status(200).json(todos);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch all todos" });
@@ -313,8 +338,15 @@ router.patch("/todos/:id", async (req, res) => {
         updateData.dueDate = validatedDueDate;
       }
     }
+    if (req.body.priority !== undefined) {
+      try {
+        updateData.priority = validatePriority(req.body.priority);
+      } catch (e) {
+        return res.status(400).json({ error: e.message });
+      }
+    }
 
-    if (Object.keys(updateData).length === 0) {
+    if (Object.keys(updateData).length === 0 && !updateData.$unset) {
       return res.status(400).json({ error: "No valid fields provided" });
     }
 

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 export function TodoForm({ onSubmit, isSubmitting }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState("Medium");
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -30,9 +31,10 @@ export function TodoForm({ onSubmit, isSubmitting }) {
     setError("");
     const isoDueDate = dueDate ? new Date(dueDate).toISOString() : null;
 
-    onSubmit(trimmedTitle, isoDueDate, () => {
+    onSubmit(trimmedTitle, isoDueDate, priority, () => {
       setTitle("");
       setDueDate("");
+      setPriority("Medium");
     });
   };
 
@@ -64,6 +66,25 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           disabled={isSubmitting}
           aria-label="Due date"
         />
+        <select
+          className="pill-input"
+          style={{
+            flex: "0 0 auto",
+            width: "auto",
+            borderLeft: "1px solid var(--border)",
+            borderRadius: 0,
+            appearance: "auto",
+            cursor: "pointer",
+          }}
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+          disabled={isSubmitting}
+          aria-label="Priority"
+        >
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
         <button
           type="submit"
           className="pill-submit"
