@@ -128,13 +128,11 @@ router.post("/signup", authLimiter, async (req, res) => {
 
     await sendOtpEmail(user.email, otp, "Signup").catch(console.error);
 
-    res
-      .status(201)
-      .json({
-        message: "OTP sent to email",
-        requiresOtp: true,
-        email: user.email,
-      });
+    res.status(201).json({
+      message: "OTP sent to email",
+      requiresOtp: true,
+      email: user.email,
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to create user" });
   }
@@ -220,13 +218,11 @@ router.post("/login", authLimiter, async (req, res) => {
     }
 
     if (!user.isVerified && user.role !== "admin") {
-      return res
-        .status(403)
-        .json({
-          error: "Please verify your email first",
-          requiresOtp: true,
-          email: user.email,
-        });
+      return res.status(403).json({
+        error: "Please verify your email first",
+        requiresOtp: true,
+        email: user.email,
+      });
     }
 
     const validPassword = await bcrypt.compare(password, user.passwordHash);
@@ -391,11 +387,9 @@ router.post("/forgot-password", passwordResetLimiter, async (req, res) => {
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user || !user.isActive) {
-      return res
-        .status(200)
-        .json({
-          message: "If that email is registered, a reset code has been sent.",
-        });
+      return res.status(200).json({
+        message: "If that email is registered, a reset code has been sent.",
+      });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -405,13 +399,11 @@ router.post("/forgot-password", passwordResetLimiter, async (req, res) => {
 
     await sendOtpEmail(user.email, otp, "Password Reset").catch(console.error);
 
-    res
-      .status(200)
-      .json({
-        message: "If that email is registered, a reset code has been sent.",
-        requiresOtp: true,
-        email: user.email,
-      });
+    res.status(200).json({
+      message: "If that email is registered, a reset code has been sent.",
+      requiresOtp: true,
+      email: user.email,
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to process request" });
   }
