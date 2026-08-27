@@ -79,6 +79,64 @@ const getCookieOptions = (maxAge) => ({
   maxAge,
 });
 
+/**
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: Register a new user account
+ *     description: |
+ *       Creates a new user account and sends a 6-digit OTP to the provided email for verification.
+ *       If the email is already registered but unverified, the user's information is updated and a new OTP is sent.
+ *       If the email is already verified or belongs to an admin, a 409 conflict is returned.
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SignupRequest'
+ *     responses:
+ *       201:
+ *         description: Account created — OTP sent to the provided email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: OTP sent to email
+ *                 requiresOtp:
+ *                   type: boolean
+ *                   example: true
+ *                 email:
+ *                   type: string
+ *                   example: user@example.com
+ *       400:
+ *         description: Missing required fields or password too short
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Email already in use by a verified user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Too many authentication attempts (rate limited)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/signup", authLimiter, async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -138,6 +196,55 @@ router.post("/signup", authLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/verify-otp:
+ *   post:
+ *     summary: Verify signup OTP and auto-login
+ *     description: |
+ *       Verifies the 6-digit OTP sent during signup. On success, the user account is marked as verified
+ *       and the user is automatically logged in with HttpOnly authentication cookies.
+ *     tags: [OTP & Verification]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/OTPVerificationRequest'
+ *     responses:
+ *       200:
+ *         description: OTP verified — user is logged in. Sets accessToken, refreshToken, and familyId HttpOnly cookies.
+ *         headers:
+ *           Set-Cookie:
+ *             description: HttpOnly authentication cookies (accessToken, refreshToken, familyId)
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/UserInfo'
+ *       400:
+ *         description: Missing fields, invalid OTP, expired OTP, or user already verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/verify-otp", authLimiter, async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -207,6 +314,74 @@ router.post("/verify-otp", authLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Authenticate user or admin
+ *     description: |
+ *       Authenticates a user or admin with email and password. On success, sets HttpOnly cookies
+ *       (accessToken, refreshToken, familyId) and returns the user information.
+ *
+ *       **Important:** This is the primary way to authenticate for all protected endpoints.
+ *       After calling this endpoint, the browser will automatically include cookies in subsequent requests.
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful — sets HttpOnly authentication cookies
+ *         headers:
+ *           Set-Cookie:
+ *             description: HttpOnly authentication cookies (accessToken, refreshToken, familyId)
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/UserInfo'
+ *       401:
+ *         description: Invalid email or password, or account is inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Email not verified — returned with requiresOtp flag
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Please verify your email first
+ *                 requiresOtp:
+ *                   type: boolean
+ *                   example: true
+ *                 email:
+ *                   type: string
+ *                   example: user@example.com
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/login", authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -272,6 +447,25 @@ router.post("/login", authLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Log out and revoke the current session
+ *     description: |
+ *       Revokes all sessions in the current token family and clears all authentication cookies.
+ *       Does not require the authenticate middleware — allows logout even with an expired access token.
+ *     tags: [Authentication]
+ *     responses:
+ *       204:
+ *         description: Logged out successfully — all cookies cleared
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/logout", async (req, res) => {
   try {
     const familyId = req.cookies.familyId;
@@ -287,6 +481,47 @@ router.post("/logout", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh the access token using the refresh token
+ *     description: |
+ *       Uses the refresh token (from HttpOnly cookies) to issue a new access token and rotate the refresh token.
+ *       Implements refresh token rotation with reuse detection — if a previously used refresh token is
+ *       replayed, all sessions in the token family are revoked for security.
+ *
+ *       Does not use the authenticate middleware — this endpoint IS the re-authentication mechanism.
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Token refreshed — new accessToken and refreshToken cookies set
+ *         headers:
+ *           Set-Cookie:
+ *             description: Updated HttpOnly authentication cookies
+ *             schema:
+ *               type: string
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Token refreshed
+ *       401:
+ *         description: Missing refresh token, session not found, session revoked (reuse detected), invalid token, expired token, or user inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/refresh", async (req, res) => {
   try {
     const { refreshToken, familyId } = req.cookies;
@@ -380,6 +615,57 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset OTP
+ *     description: |
+ *       Sends a 6-digit OTP to the provided email address for password reset.
+ *       Always returns 200 regardless of whether the email exists to prevent email enumeration attacks.
+ *     tags: [Password Recovery]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ForgotPasswordRequest'
+ *     responses:
+ *       200:
+ *         description: If the email is registered, a reset OTP has been sent (always returns 200)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "If that email is registered, a reset code has been sent."
+ *                 requiresOtp:
+ *                   type: boolean
+ *                   example: true
+ *                 email:
+ *                   type: string
+ *                   example: user@example.com
+ *       400:
+ *         description: Email field missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Too many password reset requests (3 per hour)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/forgot-password", passwordResetLimiter, async (req, res) => {
   try {
     const { email } = req.body;
@@ -409,6 +695,51 @@ router.post("/forgot-password", passwordResetLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password using OTP
+ *     description: |
+ *       Resets the user's password after verifying the OTP sent via the forgot-password flow.
+ *       On success, all existing sessions for the user are revoked for security.
+ *     tags: [Password Recovery]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PasswordResetRequest'
+ *     responses:
+ *       200:
+ *         description: Password reset successfully — all existing sessions revoked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successfully
+ *       400:
+ *         description: Invalid input, password too short, invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Too many password reset requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/reset-password", passwordResetLimiter, async (req, res) => {
   try {
     const { email, otp, newPassword } = req.body;
@@ -449,6 +780,34 @@ router.post("/reset-password", passwordResetLimiter, async (req, res) => {
 
 // A route just to get the current user based on the access token (used on frontend startup)
 const { authenticate } = require("../middleware/auth");
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get the currently authenticated user
+ *     description: |
+ *       Returns information about the user authenticated by the access token cookie.
+ *       Used by the frontend on startup to check login state.
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/UserInfo'
+ *       401:
+ *         description: Not authenticated or token expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get("/me", authenticate, (req, res) => {
   res.json({
     user: req.user,

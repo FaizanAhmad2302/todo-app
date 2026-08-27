@@ -22,6 +22,71 @@ router.use(authenticate);
 
 // Admin profile management is now supported
 
+/**
+ * @swagger
+ * /profile/request-update:
+ *   post:
+ *     summary: Request an OTP to verify a profile change
+ *     description: |
+ *       Initiates a profile update by validating the request and sending a 6-digit OTP to the
+ *       authenticated user's email. Both normal users and admins can use this endpoint to update
+ *       their own profile.
+ *
+ *       The OTP is tagged with purpose `profile_update` to prevent cross-purpose OTP usage.
+ *
+ *       **Updatable fields:** name, password (requires current password verification).
+ *
+ *       **Protected fields that CANNOT be changed:** role, email, isActive, _id, userId.
+ *
+ *       The backend identifies the user exclusively via `req.user.id` from the access token cookie.
+ *     tags: [Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProfileUpdateRequest'
+ *     responses:
+ *       200:
+ *         description: OTP sent to the user's email for verification
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: OTP sent to verify your update.
+ *                 requiresOtp:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: No updates provided, password too short, or missing current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated, user inactive, or incorrect current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Too many profile update attempts (10 per 15 minutes)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post("/request-update", profileLimiter, async (req, res) => {
   try {
     const { name, currentPassword, newPassword } = req.body;
@@ -75,6 +140,73 @@ router.post("/request-update", profileLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /profile/verify-update:
+ *   put:
+ *     summary: Apply profile changes after OTP verification
+ *     description: |
+ *       Verifies the OTP (must have purpose `profile_update`) and applies the profile changes.
+ *       Both normal users and admins can use this endpoint for their own profile.
+ *
+ *       **If only name is changed:** Profile is updated, user stays logged in.
+ *
+ *       **If password is changed:** All existing sessions are revoked, cookies are cleared,
+ *       and the user must log in again.
+ *
+ *       **Security notes:**
+ *       - OTP is single-use (cleared after verification)
+ *       - OTP purpose must be `profile_update` (cross-purpose OTPs are rejected)
+ *       - Protected fields (role, email, isActive, _id, userId) are never modified even if present in the request
+ *       - User identity is always derived from `req.user.id`, never from client-supplied data
+ *     tags: [Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProfileVerifyUpdateRequest'
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Profile updated successfully
+ *                 passwordChanged:
+ *                   type: boolean
+ *                   description: If true, all sessions were revoked and cookies were cleared. User must re-login.
+ *       400:
+ *         description: Missing OTP, invalid OTP purpose, expired OTP, or incorrect OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Not authenticated or user inactive
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       429:
+ *         description: Rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put("/verify-update", profileLimiter, async (req, res) => {
   try {
     const { otp, name, newPassword } = req.body;

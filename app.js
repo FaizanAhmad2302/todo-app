@@ -12,6 +12,9 @@ const cors = require("cors");
 
 const { csrfProtection, allowedOrigins } = require("./middleware/csrf");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
+
 const app = express();
 
 app.use(
@@ -23,7 +26,11 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("CORS policy violation: Unauthorized origin"));
+        const corsError = new Error(
+          "CORS policy violation: Unauthorized origin"
+        );
+        corsError.status = 403;
+        callback(corsError);
       }
     },
     credentials: true,
@@ -52,6 +59,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Swagger UI — conditionally mounted based on environment variable
+if (process.env.SWAGGER_ENABLED === "true") {
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);

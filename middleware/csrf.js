@@ -1,7 +1,14 @@
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+const allowedOrigins = Array.from(
+  new Set(
+    [
+      "http://localhost:5173",
+      process.env.FRONTEND_URL,
+      "http://localhost:3000",
+      process.env.PORT ? `http://localhost:${process.env.PORT}` : null,
+      process.env.BACKEND_URL,
+    ].filter(Boolean)
+  )
+);
 
 const csrfProtection = (req, res, next) => {
   if (process.env.NODE_ENV === "test") {
