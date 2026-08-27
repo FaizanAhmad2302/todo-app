@@ -30,12 +30,13 @@ function validateTodoNumber(todoNumber) {
   }
 }
 
-async function addTodo(title) {
+async function addTodo(userId, title) {
   title = validateTitle(title);
 
   const todoNumber = await repository.getNextNumber();
 
   const todo = await repository.create({
+    userId,
     todoNumber,
     title,
   });
@@ -43,84 +44,89 @@ async function addTodo(title) {
   return todo.todoNumber;
 }
 
-async function getTodos() {
-  return await repository.findAll();
+async function getTodos(userId) {
+  return await repository.findAll(userId);
 }
 
-async function getTodo(todoNumber) {
+async function getTodo(userId, todoNumber) {
   validateTodoNumber(todoNumber);
 
-  return await repository.findByNumber(todoNumber);
+  return await repository.findByNumber(userId, todoNumber);
 }
 
-async function toggleTodo(todoNumber) {
+async function toggleTodo(userId, todoNumber) {
   validateTodoNumber(todoNumber);
 
-  const todo = await repository.findByNumber(todoNumber);
+  const todo = await repository.findByNumber(userId, todoNumber);
 
   if (!todo) {
     return false;
   }
 
-  const updatedTodo = await repository.update(todoNumber, {
+  const updatedTodo = await repository.update(userId, todoNumber, {
     completed: !todo.completed,
   });
 
   return updatedTodo !== null;
 }
 
-async function renameTodo(todoNumber, title) {
+async function renameTodo(userId, todoNumber, title) {
   validateTodoNumber(todoNumber);
   title = validateTitle(title);
 
-  const updatedTodo = await repository.update(todoNumber, {
+  const updatedTodo = await repository.update(userId, todoNumber, {
     title,
   });
 
   return updatedTodo !== null;
 }
 
-async function updateTodo(todoNumber, { title, completed }) {
+async function updateTodo(userId, todoNumber, { title, completed }) {
   validateTodoNumber(todoNumber);
   const update = {};
   if (title !== undefined) update.title = validateTitle(title);
   if (completed !== undefined) update.completed = completed;
 
-  return await repository.update(todoNumber, update);
+  return await repository.update(userId, todoNumber, update);
 }
 
-async function deleteTodo(todoNumber) {
+async function deleteTodo(userId, todoNumber) {
   validateTodoNumber(todoNumber);
 
-  const result = await repository.delete(todoNumber);
+  const result = await repository.delete(userId, todoNumber);
 
   return result.deletedCount > 0;
 }
 
-async function deleteAllTodos() {
-  const result = await repository.deleteAll();
+async function deleteAllTodos(userId) {
+  const result = await repository.deleteAll(userId);
 
   return result.deletedCount;
 }
 
-async function getCompletedTodos() {
-  return await repository.findCompleted();
+async function getCompletedTodos(userId) {
+  return await repository.findCompleted(userId);
 }
 
-async function getIncompleteTodos() {
-  return await repository.findIncomplete();
+async function getIncompleteTodos(userId) {
+  return await repository.findIncomplete(userId);
 }
 
-async function deleteCompletedTodos() {
-  const result = await repository.deleteCompleted();
+async function deleteCompletedTodos(userId) {
+  const result = await repository.deleteCompleted(userId);
 
   return result.deletedCount;
 }
 
-async function deleteIncompleteTodos() {
-  const result = await repository.deleteIncomplete();
+async function deleteIncompleteTodos(userId) {
+  const result = await repository.deleteIncomplete(userId);
 
   return result.deletedCount;
+}
+
+// Admin Methods
+async function getAllTodosAdmin() {
+  return await repository.findAllAdmin();
 }
 
 module.exports = {
@@ -136,4 +142,5 @@ module.exports = {
   getIncompleteTodos,
   deleteCompletedTodos,
   deleteIncompleteTodos,
+  getAllTodosAdmin,
 };

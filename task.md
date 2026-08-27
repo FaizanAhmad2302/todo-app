@@ -1,0 +1,46 @@
+- [x] 1. Backend Setup
+  - [x] Install `bcrypt`, `jsonwebtoken`, `cookie-parser`
+  - [x] Update `package.json`
+- [x] 2. Database Models
+  - [x] Create `User` model (`name`, `email`, `passwordHash`, `role`, `isActive`)
+  - [x] Create `Session` model (`userId`, `refreshTokenHash`, `familyId`, `expiresAt`, `revoked`)
+  - [x] Create `ResetToken` model (`userId`, `tokenHash`, `expiresAt`)
+  - [x] Update `Todo` model to include `userId`
+- [x] 3. Business Logic & Repository Updates (Data Isolation)
+  - [x] Modify `TodoRepository.js` to enforce `userId` filtering on all operations
+  - [x] Modify `todo.js` functions to accept and pass `userId`
+  - [x] Modify `routes/todos.js` to extract `userId` from `req.user`
+- [x] 4. Authentication Middleware
+  - [x] Create `middleware/auth.js` (`authenticate`, `requireAdmin`)
+  - [x] Update `app.js` to include `cookie-parser` and mount auth/admin routes
+- [x] 5. Auth API Endpoints (`routes/auth.js`)
+  - [x] Implement `POST /signup`
+  - [x] Implement `POST /login`
+  - [x] Implement `POST /logout` (Server-side revocation)
+  - [x] Implement `POST /refresh` (Rotation & Reuse detection)
+  - [x] Implement `POST /forgot-password` and `POST /reset-password`
+- [x] 6. Admin Endpoints & Script
+  - [x] Create `routes/admin.js`
+  - [x] Create `scripts/createAdmin.js`
+- [x] 7. Frontend Setup
+  - [x] Install `react-router-dom` in `frontend`
+  - [x] Setup `<BrowserRouter>` in `main.jsx`
+  - [x] Create `AuthContext.jsx` for global auth state
+  - [ ] 9. Strict CSRF & CORS Protection
+  - [ ] Implement robust Origin/Referer check middleware (`middleware/csrf.js`)
+  - [ ] Enforce strict CORS logic in `app.js` without wildcards
+- [ ] 10. Granular Auth Rate Limiting
+  - [ ] Implement configurable endpoint-specific rate limiters (login, signup, password-reset)
+- [ ] 11. Security Tests (`test/security.test.js`)
+  - [ ] Isolation: User A cannot read/update/delete User B's Todo
+  - [ ] Roles: Normal user cannot access admin / signup cannot create admin
+  - [ ] Deactivation: Disabled user cannot use active token / cannot refresh
+  - [ ] Revocation: Password reset revokes all sessions
+  - [ ] Tokens: Rotated token cannot be reused / Reuse revokes family / Expired rejected
+  - [ ] CSRF & Rate limits reject appropriately
+- [ ] 12. Fix Existing Test Suites
+  - [ ] Update `test/api.test.js` to authenticate before requests
+  - [ ] Update `test/todo.test.js` to pass mocked `userId` to all functions
+- [ ] 13. Final Review
+  - [ ] Verify TTL indexes are created
+  - [ ] Verify HttpOnly/Secure/SameSite/Path cookie propertiesg a mock user)

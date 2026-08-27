@@ -5,42 +5,44 @@ class TodoRepository {
   async create(data) {
     return await Todo.create(data);
   }
-  async findAll() {
-    return await Todo.find().sort({ todoNumber: 1 });
+  
+  async findAll(userId) {
+    return await Todo.find({ userId }).sort({ todoNumber: 1 });
   }
-  async findByNumber(todoNumber) {
-    return await Todo.findOne({ todoNumber });
+  
+  async findByNumber(userId, todoNumber) {
+    return await Todo.findOne({ userId, todoNumber });
   }
 
-  async update(todoNumber, data) {
-    return await Todo.findOneAndUpdate({ todoNumber }, data, {
+  async update(userId, todoNumber, data) {
+    return await Todo.findOneAndUpdate({ userId, todoNumber }, data, {
       returnDocument: "after",
       runValidators: true,
     });
   }
 
-  async delete(todoNumber) {
-    return await Todo.deleteOne({ todoNumber });
+  async delete(userId, todoNumber) {
+    return await Todo.deleteOne({ userId, todoNumber });
   }
 
-  async deleteAll() {
-    return await Todo.deleteMany({});
+  async deleteAll(userId) {
+    return await Todo.deleteMany({ userId });
   }
 
-  async findCompleted() {
-    return await Todo.find({ completed: true }).sort({ todoNumber: 1 });
+  async findCompleted(userId) {
+    return await Todo.find({ userId, completed: true }).sort({ todoNumber: 1 });
   }
 
-  async findIncomplete() {
-    return await Todo.find({ completed: false }).sort({ todoNumber: 1 });
+  async findIncomplete(userId) {
+    return await Todo.find({ userId, completed: false }).sort({ todoNumber: 1 });
   }
 
-  async deleteCompleted() {
-    return await Todo.deleteMany({ completed: true });
+  async deleteCompleted(userId) {
+    return await Todo.deleteMany({ userId, completed: true });
   }
 
-  async deleteIncomplete() {
-    return await Todo.deleteMany({ completed: false });
+  async deleteIncomplete(userId) {
+    return await Todo.deleteMany({ userId, completed: false });
   }
 
   async getNextNumber() {
@@ -51,6 +53,11 @@ class TodoRepository {
     );
 
     return counter.seq;
+  }
+  
+  // Admin Methods
+  async findAllAdmin() {
+    return await Todo.find().sort({ todoNumber: 1 });
   }
 }
 

@@ -1,4 +1,5 @@
 const express = require("express");
+const { authenticate } = require("../middleware/auth");
 const {
   addTodo,
   getTodos,
@@ -14,6 +15,9 @@ const {
 
 const router = express.Router();
 
+// ALL /todos routes require authentication
+router.use(authenticate);
+
 function parseCompleted(value) {
   if (value === undefined) return undefined;
   if (value === "true") return true;
@@ -27,6 +31,7 @@ function parseCompleted(value) {
 // GET /todos?completed=false
 router.get("/", async (req, res) => {
   const completed = parseCompleted(req.query.completed);
+  const userId = req.user.id;
 
   if (completed === null) {
     return res
@@ -35,24 +40,25 @@ router.get("/", async (req, res) => {
   }
 
   if (completed === true) {
-    const todos = await getCompletedTodos();
+    const todos = await getCompletedTodos(userId);
     return res.status(200).json(todos);
   }
 
   if (completed === false) {
-    const todos = await getIncompleteTodos();
+    const todos = await getIncompleteTodos(userId);
     return res.status(200).json(todos);
   }
 
-  const todos = await getTodos();
+  const todos = await getTodos(userId);
   res.status(200).json(todos);
 });
 
 // GET /todos/:id
 router.get("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
+  const userId = req.user.id;
 
-  const todo = await getTodo(todoNumber);
+  const todo = await getTodo(userId, todoNumber);
 
   if (!todo) {
     return res.status(404).json({ error: `Todo ${todoNumber} not found` });
@@ -64,9 +70,10 @@ router.get("/:id", async (req, res) => {
 // POST /todos
 router.post("/", async (req, res) => {
   const { title } = req.body;
+  const userId = req.user.id;
 
-  const todoNumber = await addTodo(title);
-  const todo = await getTodo(todoNumber);
+  const todoNumber = await addTodo(userId, title);
+  const todo = await getTodo(userId, todoNumber);
 
   res.status(201).json(todo);
 });
@@ -74,6 +81,7 @@ router.post("/", async (req, res) => {
 // PATCH /todos/:id
 router.patch("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
+  const userId = req.user.id;
 
   const { title, completed } = req.body;
 
@@ -98,7 +106,7 @@ router.patch("/:id", async (req, res) => {
     return res.status(400).json({ error: "Completed must be a boolean" });
   }
 
-  const updatedTodo = await updateTodo(todoNumber, { title, completed });
+  const updatedTodo = await updateTodo(userId, todoNumber, { title, completed });
 
   if (!updatedTodo) {
     return res.status(404).json({ error: `Todo ${todoNumber} not found` });
@@ -110,14 +118,15 @@ router.patch("/:id", async (req, res) => {
 // DELETE /todos/:id
 router.delete("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
+  const userId = req.user.id;
 
-  const todo = await getTodo(todoNumber);
+  const todo = await getTodo(userId, todoNumber);
 
   if (!todo) {
     return res.status(404).json({ error: `Todo ${todoNumber} not found` });
   }
 
-  await deleteTodo(todoNumber);
+  await deleteTodo(userId, todoNumber);
   res.status(204).send();
 });
 
@@ -125,6 +134,7 @@ router.delete("/:id", async (req, res) => {
 // DELETE /todos?completed=false&confirm=true
 router.delete("/", async (req, res) => {
   const confirm = req.query.confirm === "true";
+  const userId = req.user.id;
 
   if (!confirm) {
     return res
@@ -141,12 +151,12 @@ router.delete("/", async (req, res) => {
   }
 
   if (completed === true) {
-    await deleteCompletedTodos();
+    await deleteCompletedTodos(userId);
     return res.status(204).send();
   }
 
   if (completed === false) {
-    await deleteIncompleteTodos();
+    await deleteIncompleteTodos(userId);
     return res.status(204).send();
   }
 
