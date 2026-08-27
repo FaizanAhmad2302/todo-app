@@ -24,7 +24,7 @@ beforeEach(async () => {
   await Counter.deleteMany({});
   await mongoose.connection.collection("users").deleteMany({});
   await mongoose.connection.collection("sessions").deleteMany({});
-  
+
   await createTestUser();
   authCookies = await loginUser(baseUrl);
 });
@@ -43,9 +43,9 @@ after(async () => {
 async function createTodo(title = "Buy milk") {
   const res = await fetch(`${baseUrl}/todos`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Cookie": authCookies
+      Cookie: authCookies,
     },
     body: JSON.stringify({ title }),
   });
@@ -58,7 +58,7 @@ describe("POST /todos", () => {
   test("returns 201 and the created todo", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "Buy milk" }),
     });
 
@@ -72,7 +72,7 @@ describe("POST /todos", () => {
   test("returns 400 when title is missing", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({}),
     });
 
@@ -84,7 +84,7 @@ describe("POST /todos", () => {
   test("returns 400 when title is empty string", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "" }),
     });
 
@@ -94,7 +94,7 @@ describe("POST /todos", () => {
   test("returns 400 when title is only whitespace", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "   " }),
     });
 
@@ -104,7 +104,7 @@ describe("POST /todos", () => {
   test("returns 400 when title is a number", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: 123 }),
     });
 
@@ -114,7 +114,7 @@ describe("POST /todos", () => {
   test("returns 400 when title exceeds 50 characters", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "A".repeat(51) }),
     });
 
@@ -124,7 +124,7 @@ describe("POST /todos", () => {
   test("returns 400 when body is not valid JSON", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: "{bad json",
     });
 
@@ -139,7 +139,7 @@ describe("POST /todos", () => {
 describe("GET /todos", () => {
   test("returns 200 and an empty array when no todos exist", async () => {
     const res = await fetch(`${baseUrl}/todos`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 200);
@@ -152,7 +152,7 @@ describe("GET /todos", () => {
     await createTodo("Second");
 
     const res = await fetch(`${baseUrl}/todos`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 200);
@@ -164,13 +164,13 @@ describe("GET /todos", () => {
     const todo = await createTodo("Done task");
     await fetch(`${baseUrl}/todos/${todo.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
     await createTodo("Not done task");
 
     const res = await fetch(`${baseUrl}/todos?completed=true`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 200);
@@ -183,13 +183,13 @@ describe("GET /todos", () => {
     const todo = await createTodo("Done task");
     await fetch(`${baseUrl}/todos/${todo.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
     await createTodo("Not done task");
 
     const res = await fetch(`${baseUrl}/todos?completed=false`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 200);
@@ -200,7 +200,7 @@ describe("GET /todos", () => {
 
   test("returns 400 for invalid completed value", async () => {
     const res = await fetch(`${baseUrl}/todos?completed=yes`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -216,7 +216,7 @@ describe("GET /todos/:id", () => {
     const created = await createTodo("Buy eggs");
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 200);
@@ -226,7 +226,7 @@ describe("GET /todos/:id", () => {
 
   test("returns 404 for a todo that does not exist", async () => {
     const res = await fetch(`${baseUrl}/todos/9999`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 404);
@@ -236,7 +236,7 @@ describe("GET /todos/:id", () => {
 
   test("returns 400 for a non-integer id", async () => {
     const res = await fetch(`${baseUrl}/todos/banana`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -246,7 +246,7 @@ describe("GET /todos/:id", () => {
 
   test("returns 400 for a negative id", async () => {
     const res = await fetch(`${baseUrl}/todos/-1`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -254,7 +254,7 @@ describe("GET /todos/:id", () => {
 
   test("returns 400 for a decimal id", async () => {
     const res = await fetch(`${baseUrl}/todos/1.5`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -269,7 +269,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "New title" }),
     });
 
@@ -283,7 +283,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
 
@@ -297,7 +297,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "Updated", completed: true }),
     });
 
@@ -312,13 +312,13 @@ describe("PATCH /todos/:id", () => {
 
     await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
 
@@ -332,7 +332,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({}),
     });
 
@@ -344,7 +344,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ titel: "typo" }),
     });
 
@@ -358,7 +358,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: "yes" }),
     });
 
@@ -370,7 +370,7 @@ describe("PATCH /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ title: "" }),
     });
 
@@ -380,7 +380,7 @@ describe("PATCH /todos/:id", () => {
   test("returns 404 for a todo that does not exist", async () => {
     const res = await fetch(`${baseUrl}/todos/9999`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
 
@@ -390,7 +390,7 @@ describe("PATCH /todos/:id", () => {
   test("returns 400 for a non-integer id", async () => {
     const res = await fetch(`${baseUrl}/todos/banana`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
 
@@ -406,7 +406,7 @@ describe("DELETE /todos/:id", () => {
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 204);
@@ -419,11 +419,11 @@ describe("DELETE /todos/:id", () => {
 
     await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     const res = await fetch(`${baseUrl}/todos/${created.todoNumber}`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
     assert.strictEqual(res.status, 404);
   });
@@ -431,7 +431,7 @@ describe("DELETE /todos/:id", () => {
   test("returns 404 for a todo that does not exist", async () => {
     const res = await fetch(`${baseUrl}/todos/9999`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 404);
@@ -440,7 +440,7 @@ describe("DELETE /todos/:id", () => {
   test("returns 400 for a non-integer id", async () => {
     const res = await fetch(`${baseUrl}/todos/banana`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -456,7 +456,7 @@ describe("DELETE /todos", () => {
 
     const res = await fetch(`${baseUrl}/todos?confirm=true`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 403);
@@ -464,7 +464,7 @@ describe("DELETE /todos", () => {
     assert.ok(body.error);
 
     const listRes = await fetch(`${baseUrl}/todos`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
     const list = await listRes.json();
     assert.strictEqual(list.length, 2);
@@ -473,7 +473,7 @@ describe("DELETE /todos", () => {
   test("returns 403 if ?confirm=true is missing", async () => {
     const res = await fetch(`${baseUrl}/todos?completed=true`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
     assert.strictEqual(res.status, 403);
     const body = await res.json();
@@ -484,20 +484,20 @@ describe("DELETE /todos", () => {
     const todo = await createTodo("Done");
     await fetch(`${baseUrl}/todos/${todo.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
     await createTodo("Not done");
 
     const res = await fetch(`${baseUrl}/todos?completed=true&confirm=true`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 204);
 
     const listRes = await fetch(`${baseUrl}/todos`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
     const body = await listRes.json();
     assert.strictEqual(body.length, 1);
@@ -508,20 +508,20 @@ describe("DELETE /todos", () => {
     const todo = await createTodo("Done");
     await fetch(`${baseUrl}/todos/${todo.todoNumber}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "Cookie": authCookies },
+      headers: { "Content-Type": "application/json", Cookie: authCookies },
       body: JSON.stringify({ completed: true }),
     });
     await createTodo("Not done");
 
     const res = await fetch(`${baseUrl}/todos?completed=false&confirm=true`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 204);
 
     const listRes = await fetch(`${baseUrl}/todos`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
     const body = await listRes.json();
     assert.strictEqual(body.length, 1);
@@ -531,7 +531,7 @@ describe("DELETE /todos", () => {
   test("returns 400 for invalid completed value", async () => {
     const res = await fetch(`${baseUrl}/todos?completed=yes&confirm=true`, {
       method: "DELETE",
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 400);
@@ -543,7 +543,7 @@ describe("DELETE /todos", () => {
 describe("Unknown routes", () => {
   test("returns 404 JSON for unknown path", async () => {
     const res = await fetch(`${baseUrl}/unknown`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 404);
@@ -553,7 +553,7 @@ describe("Unknown routes", () => {
 
   test("returns 404 JSON for typo in /todos path", async () => {
     const res = await fetch(`${baseUrl}/todo/1`, {
-      headers: { "Cookie": authCookies },
+      headers: { Cookie: authCookies },
     });
 
     assert.strictEqual(res.status, 404);

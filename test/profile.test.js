@@ -26,10 +26,10 @@ beforeEach(async () => {
   await mongoose.connection.collection("users").deleteMany({});
   await mongoose.connection.collection("sessions").deleteMany({});
   await mongoose.connection.collection("todos").deleteMany({});
-  
+
   userObj = await createTestUser("normal@example.com", "Password123!");
   userCookies = await loginUser(baseUrl, "normal@example.com", "Password123!");
-  
+
   await createTestUser("admin@example.com", "AdminPass123!", "admin");
   adminCookies = await loginUser(baseUrl, "admin@example.com", "AdminPass123!");
 });
@@ -44,7 +44,7 @@ describe("Phase 3 - User Profile Management", () => {
     const res = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Hacker" })
+      body: JSON.stringify({ name: "Hacker" }),
     });
     assert.strictEqual(res.status, 401);
   });
@@ -52,11 +52,11 @@ describe("Phase 3 - User Profile Management", () => {
   test("Admins can access profile endpoints and update their own name securely", async () => {
     const reqRes = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ name: "Admin New Name" })
+      body: JSON.stringify({ name: "Admin New Name" }),
     });
     assert.strictEqual(reqRes.status, 200);
 
@@ -68,11 +68,11 @@ describe("Phase 3 - User Profile Management", () => {
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ otp: knownOtp, name: "Admin New Name" })
+      body: JSON.stringify({ otp: knownOtp, name: "Admin New Name" }),
     });
     assert.strictEqual(verRes.status, 200);
 
@@ -83,11 +83,11 @@ describe("Phase 3 - User Profile Management", () => {
   test("Admin cannot modify restricted fields (role, isActive, email) or userId", async () => {
     const reqRes = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ name: "Valid Update" })
+      body: JSON.stringify({ name: "Valid Update" }),
     });
     assert.strictEqual(reqRes.status, 200);
 
@@ -99,18 +99,18 @@ describe("Phase 3 - User Profile Management", () => {
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ 
-        otp: knownOtp, 
+      body: JSON.stringify({
+        otp: knownOtp,
         name: "Hacker Name",
         role: "user",
         isActive: false,
         email: "hacked@example.com",
-        userId: "123456789012345678901234"
-      })
+        userId: "123456789012345678901234",
+      }),
     });
     assert.strictEqual(verRes.status, 200);
 
@@ -122,7 +122,7 @@ describe("Phase 3 - User Profile Management", () => {
 
   test("Admin password change revokes existing sessions", async () => {
     const adminUserObj = await User.findOne({ email: "admin@example.com" });
-    
+
     // Check sessions exist
     let sessions = await Session.find({ userId: adminUserObj._id });
     assert.ok(sessions.length > 0);
@@ -131,11 +131,14 @@ describe("Phase 3 - User Profile Management", () => {
     // Request password change
     await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ currentPassword: "AdminPass123!", newPassword: "NewAdminPass123!" })
+      body: JSON.stringify({
+        currentPassword: "AdminPass123!",
+        newPassword: "NewAdminPass123!",
+      }),
     });
 
     const knownOtp = "123456";
@@ -144,39 +147,39 @@ describe("Phase 3 - User Profile Management", () => {
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: adminCookies
+        Cookie: adminCookies,
       },
-      body: JSON.stringify({ otp: knownOtp, newPassword: "NewAdminPass123!" })
+      body: JSON.stringify({ otp: knownOtp, newPassword: "NewAdminPass123!" }),
     });
     assert.strictEqual(verRes.status, 200);
-    
+
     const body = await verRes.json();
     assert.strictEqual(body.passwordChanged, true);
 
     // Verify sessions revoked
     sessions = await Session.find({ userId: adminUserObj._id });
     assert.ok(sessions.length > 0);
-    assert.ok(sessions.every(s => s.revoked === true));
+    assert.ok(sessions.every((s) => s.revoked === true));
   });
 
   test("User cannot modify another user's profile (userId injection ignored)", async () => {
     const otherUser = await createTestUser("other@example.com", "Password123!");
     const res = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ name: "Hacked", userId: otherUser._id })
+      body: JSON.stringify({ name: "Hacked", userId: otherUser._id }),
     });
     assert.strictEqual(res.status, 200); // Sends OTP for normal@example.com
 
     // Manually extract OTP from DB to verify
     const dbNormalUser = await User.findById(userObj._id);
     const dbOtherUser = await User.findById(otherUser._id);
-    
+
     assert.ok(dbNormalUser.otpHash);
     assert.strictEqual(dbOtherUser.otpHash, undefined);
   });
@@ -188,19 +191,19 @@ describe("Phase 3 - User Profile Management", () => {
     // Request Update
     const reqRes = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ name: "Updated Name" })
+      body: JSON.stringify({ name: "Updated Name" }),
     });
     assert.strictEqual(reqRes.status, 200);
 
     // Get OTP by bypassing email (via DB)
     const dbUser = await User.findById(userObj._id);
-    
+
     // We cannot easily reverse the bcrypt hash, so we'll mock the verify payload
-    // Wait, since we are doing an e2e test, we can't extract the exact OTP. 
+    // Wait, since we are doing an e2e test, we can't extract the exact OTP.
     // We must manually overwrite the otpHash in DB to a known OTP hash.
     const knownOtp = "123456";
     const knownHash = await bcrypt.hash(knownOtp, 10);
@@ -210,11 +213,11 @@ describe("Phase 3 - User Profile Management", () => {
     // Verify Update
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ otp: knownOtp, name: "Updated Name" })
+      body: JSON.stringify({ otp: knownOtp, name: "Updated Name" }),
     });
     assert.strictEqual(verRes.status, 200);
 
@@ -229,34 +232,34 @@ describe("Phase 3 - User Profile Management", () => {
   test("Cannot change restricted fields (role, isActive, email)", async () => {
     const knownOtp = "123456";
     const knownHash = await bcrypt.hash(knownOtp, 10);
-    
+
     // Request update to generate valid structure
     await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ name: "Valid Update" })
+      body: JSON.stringify({ name: "Valid Update" }),
     });
 
     await User.updateOne({ _id: userObj._id }, { otpHash: knownHash });
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ 
-        otp: knownOtp, 
+      body: JSON.stringify({
+        otp: knownOtp,
         name: "Hacker Name",
         role: "admin",
         isActive: false,
-        email: "hacked@example.com"
-      })
+        email: "hacked@example.com",
+      }),
     });
-    
+
     assert.strictEqual(verRes.status, 200);
 
     const updatedUser = await User.findById(userObj._id);
@@ -268,25 +271,31 @@ describe("Phase 3 - User Profile Management", () => {
   test("Password requires current password to update", async () => {
     const reqRes = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ newPassword: "NewPassword123!" })
+      body: JSON.stringify({ newPassword: "NewPassword123!" }),
     });
     assert.strictEqual(reqRes.status, 400);
     const body = await reqRes.json();
-    assert.strictEqual(body.error, "Current password is required to change password");
+    assert.strictEqual(
+      body.error,
+      "Current password is required to change password"
+    );
   });
 
   test("Wrong current password rejected", async () => {
     const reqRes = await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ currentPassword: "WrongPassword!", newPassword: "NewPassword123!" })
+      body: JSON.stringify({
+        currentPassword: "WrongPassword!",
+        newPassword: "NewPassword123!",
+      }),
     });
     assert.strictEqual(reqRes.status, 401);
   });
@@ -295,20 +304,23 @@ describe("Phase 3 - User Profile Management", () => {
     // Generate a signup OTP
     const knownOtp = "123456";
     const knownHash = await bcrypt.hash(knownOtp, 10);
-    
-    await User.updateOne({ _id: userObj._id }, { 
-      otpHash: knownHash, 
-      otpExpiresAt: new Date(Date.now() + 10000), 
-      otpPurpose: 'signup' // Wrong purpose
-    });
+
+    await User.updateOne(
+      { _id: userObj._id },
+      {
+        otpHash: knownHash,
+        otpExpiresAt: new Date(Date.now() + 10000),
+        otpPurpose: "signup", // Wrong purpose
+      }
+    );
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ otp: knownOtp, name: "New Name" })
+      body: JSON.stringify({ otp: knownOtp, name: "New Name" }),
     });
     assert.strictEqual(verRes.status, 400);
     const body = await verRes.json();
@@ -324,11 +336,14 @@ describe("Phase 3 - User Profile Management", () => {
     // Request password change
     await fetch(`${baseUrl}/profile/request-update`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ currentPassword: "Password123!", newPassword: "NewPassword123!" })
+      body: JSON.stringify({
+        currentPassword: "Password123!",
+        newPassword: "NewPassword123!",
+      }),
     });
 
     const knownOtp = "123456";
@@ -337,37 +352,37 @@ describe("Phase 3 - User Profile Management", () => {
 
     const verRes = await fetch(`${baseUrl}/profile/verify-update`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        Cookie: userCookies
+        Cookie: userCookies,
       },
-      body: JSON.stringify({ otp: knownOtp, newPassword: "NewPassword123!" })
+      body: JSON.stringify({ otp: knownOtp, newPassword: "NewPassword123!" }),
     });
-    
+
     assert.strictEqual(verRes.status, 200);
-    
+
     const body = await verRes.json();
     assert.strictEqual(body.passwordChanged, true);
 
     // Verify sessions revoked
     sessions = await Session.find({ userId: userObj._id });
     assert.ok(sessions.length > 0);
-    assert.ok(sessions.every(s => s.revoked === true));
-    
+    assert.ok(sessions.every((s) => s.revoked === true));
+
     // Verify old access authentication is rejected (stateless cookie test via me)
     const meRes = await fetch(`${baseUrl}/auth/me`, {
-      headers: { 
-        Cookie: userCookies // The old cookie string before we changed it
-      }
+      headers: {
+        Cookie: userCookies, // The old cookie string before we changed it
+      },
     });
-    
+
     // Note: Since JWT verification itself is stateless in auth middleware, the access token is theoretically valid until it expires.
     // However, if the user tries to REFRESH the token, it will fail. Let's test the refresh endpoint.
     const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
       method: "POST",
-      headers: { 
-        Cookie: userCookies
-      }
+      headers: {
+        Cookie: userCookies,
+      },
     });
     assert.strictEqual(refreshRes.status, 401);
   });

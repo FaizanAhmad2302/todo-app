@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Toast } from '../components/Toast';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Toast } from "../components/Toast";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
     try {
       setLoading(true);
       const user = await login(email, password);
-      navigate(user.role === 'admin' ? '/admin' : '/');
+      navigate(user.role === "admin" ? "/admin" : "/");
     } catch (err) {
       if (err.data && err.data.requiresOtp) {
-        navigate('/verify-otp', { state: { email: err.data.email || email } });
+        navigate("/verify-otp", { state: { email: err.data.email || email } });
       } else {
-        setError(err.message || 'Failed to login');
+        setError(err.message || "Failed to login");
       }
     } finally {
       setLoading(false);
@@ -38,13 +38,15 @@ export default function Login() {
 
   return (
     <div className="auth-container">
-      {error && <Toast message={error} type="error" onClose={() => setError('')} />}
+      {error && (
+        <Toast message={error} type="error" onClose={() => setError("")} />
+      )}
       <div className="auth-card">
         <div className="auth-header">
           <h1>Welcome Back</h1>
           <p>Login to your Task Manager</p>
         </div>
-        
+
         <form className="auth-form" onSubmit={handleSubmit}>
           <div>
             <input
@@ -69,13 +71,22 @@ export default function Login() {
             />
           </div>
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Don't have an account? <Link to="/signup" className="auth-link">Sign up</Link></p>
-          <p style={{ marginTop: '12px' }}><Link to="/forgot-password" className="auth-link">Forgot Password?</Link></p>
+          <p>
+            Don't have an account?{" "}
+            <Link to="/signup" className="auth-link">
+              Sign up
+            </Link>
+          </p>
+          <p style={{ marginTop: "12px" }}>
+            <Link to="/forgot-password" className="auth-link">
+              Forgot Password?
+            </Link>
+          </p>
         </div>
       </div>
     </div>

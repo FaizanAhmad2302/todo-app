@@ -1,14 +1,14 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export const ProtectedRoute = () => {
   const { currentUser } = useAuth();
-  
+
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
-  if (currentUser.role === 'admin') {
+  if (currentUser.role === "admin") {
     return <Navigate to="/admin" replace />;
   }
 
@@ -17,12 +17,12 @@ export const ProtectedRoute = () => {
 
 export const AdminRoute = () => {
   const { currentUser } = useAuth();
-  
+
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
-  if (currentUser.role !== 'admin') {
+  if (currentUser.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
@@ -31,11 +31,10 @@ export const AdminRoute = () => {
 
 export const AuthenticatedRoute = () => {
   const { currentUser } = useAuth();
-  
+
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
 };
-

@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-export function TodoFilter({ filter, onFilterChange, onClearCompleted, onClearIncomplete }) {
+export function TodoFilter({
+  filter,
+  onFilterChange,
+  onClearCompleted,
+  onClearIncomplete,
+}) {
   const [isClearing, setIsClearing] = useState(false);
 
   const handleClearCompleted = async () => {
-    if (window.confirm('Are you sure you want to delete all completed tasks?')) {
+    if (
+      window.confirm("Are you sure you want to delete all completed tasks?")
+    ) {
       setIsClearing(true);
       await onClearCompleted();
       setIsClearing(false);
@@ -12,7 +19,9 @@ export function TodoFilter({ filter, onFilterChange, onClearCompleted, onClearIn
   };
 
   const handleClearIncomplete = async () => {
-    if (window.confirm('Are you sure you want to delete all incomplete tasks?')) {
+    if (
+      window.confirm("Are you sure you want to delete all incomplete tasks?")
+    ) {
       setIsClearing(true);
       await onClearIncomplete();
       setIsClearing(false);
@@ -22,36 +31,36 @@ export function TodoFilter({ filter, onFilterChange, onClearCompleted, onClearIn
   return (
     <div className="filter-container">
       <div className="filter-group">
-        <button 
-          className={`btn btn-ghost ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => onFilterChange('all')}
+        <button
+          className={`btn btn-ghost ${filter === "all" ? "active" : ""}`}
+          onClick={() => onFilterChange("all")}
         >
           All
         </button>
-        <button 
-          className={`btn btn-ghost ${filter === 'active' ? 'active' : ''}`}
-          onClick={() => onFilterChange('active')}
+        <button
+          className={`btn btn-ghost ${filter === "active" ? "active" : ""}`}
+          onClick={() => onFilterChange("active")}
         >
           Active
         </button>
-        <button 
-          className={`btn btn-ghost ${filter === 'completed' ? 'active' : ''}`}
-          onClick={() => onFilterChange('completed')}
+        <button
+          className={`btn btn-ghost ${filter === "completed" ? "active" : ""}`}
+          onClick={() => onFilterChange("completed")}
         >
           Completed
         </button>
       </div>
-      
+
       <div className="bulk-actions">
-        <button 
-          className="btn btn-danger" 
+        <button
+          className="btn btn-danger"
           onClick={handleClearCompleted}
           disabled={isClearing}
         >
           Clear Completed
         </button>
-        <button 
-          className="btn btn-danger" 
+        <button
+          className="btn btn-danger"
           onClick={handleClearIncomplete}
           disabled={isClearing}
         >

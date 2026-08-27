@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -7,7 +7,6 @@ class ApiError extends Error {
     this.data = data || {};
   }
 }
-
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -26,9 +25,9 @@ const processQueue = (error) => {
 export async function apiFetch(endpoint, options = {}, retries = 1) {
   const fetchOptions = {
     ...options,
-    credentials: 'include', // Important for cookies!
+    credentials: "include", // Important for cookies!
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options.headers,
     },
   };
@@ -36,7 +35,12 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
   const response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
 
   if (!response.ok) {
-    if (response.status === 401 && retries > 0 && endpoint !== '/auth/login' && endpoint !== '/auth/refresh') {
+    if (
+      response.status === 401 &&
+      retries > 0 &&
+      endpoint !== "/auth/login" &&
+      endpoint !== "/auth/refresh"
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -49,12 +53,12 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
 
       try {
         const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
+          method: "POST",
+          credentials: "include",
         });
 
         if (!refreshRes.ok) {
-          throw new Error('Refresh failed');
+          throw new Error("Refresh failed");
         }
 
         isRefreshing = false;
@@ -65,14 +69,14 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
       } catch (err) {
         isRefreshing = false;
         processQueue(err);
-        
+
         // Dispatch custom event to tell AuthContext to force logout
-        window.dispatchEvent(new Event('auth:unauthorized'));
-        throw new ApiError('Session expired', 401);
+        window.dispatchEvent(new Event("auth:unauthorized"));
+        throw new ApiError("Session expired", 401);
       }
     }
 
-    let errorMessage = 'An unexpected error occurred';
+    let errorMessage = "An unexpected error occurred";
     let errorData = {};
     try {
       errorData = await response.json();
@@ -92,7 +96,7 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
 
 // Todo specific exports
 export const getTodos = async (completed) => {
-  let url = '/todos';
+  let url = "/todos";
   if (completed !== undefined) {
     url += `?completed=${completed}`;
   }
@@ -104,68 +108,68 @@ export const getTodo = async (id) => {
 };
 
 export const createTodo = async (title) => {
-  return apiFetch('/todos', {
-    method: 'POST',
+  return apiFetch("/todos", {
+    method: "POST",
     body: JSON.stringify({ title }),
   });
 };
 
 export const updateTodo = async (id, updates) => {
   return apiFetch(`/todos/${id}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(updates),
   });
 };
 
 export const deleteTodo = async (id) => {
   return apiFetch(`/todos/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 };
 
 export const deleteCompletedTodos = async () => {
-  return apiFetch('/todos?completed=true&confirm=true', {
-    method: 'DELETE',
+  return apiFetch("/todos?completed=true&confirm=true", {
+    method: "DELETE",
   });
 };
 
 export const deleteIncompleteTodos = async () => {
-  return apiFetch('/todos?completed=false&confirm=true', {
-    method: 'DELETE',
+  return apiFetch("/todos?completed=false&confirm=true", {
+    method: "DELETE",
   });
 };
 
 // Admin specific exports
 export const getAdminUsers = async () => {
-  return apiFetch('/admin/users');
+  return apiFetch("/admin/users");
 };
 
 export const toggleAdminUser = async (id, isActive) => {
   return apiFetch(`/admin/users/${id}/disable`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify({ isActive }),
   });
 };
 
 export const getAdminTodos = async () => {
-  return apiFetch('/admin/todos');
+  return apiFetch("/admin/todos");
 };
 
 export const adminUpdateTodo = async (id, updates) => {
   return apiFetch(`/admin/todos/${id}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(updates),
   });
 };
 
 export const adminDeleteTodo = async (id) => {
   return apiFetch(`/admin/todos/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 };
 
 export const adminDeleteUser = async (id) => {
   return apiFetch(`/admin/users/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 };

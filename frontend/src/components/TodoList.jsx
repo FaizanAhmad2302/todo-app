@@ -1,7 +1,13 @@
-import React from 'react';
-import { TodoItem } from './TodoItem';
+import React from "react";
+import { TodoItem } from "./TodoItem";
 
-export function TodoList({ todos, onToggle, onUpdate, onDelete, emptyMessage }) {
+export function TodoList({
+  todos,
+  onToggle,
+  onUpdate,
+  onDelete,
+  emptyMessage,
+}) {
   if (todos.length === 0) {
     return (
       <div className="empty-state">
@@ -12,10 +18,10 @@ export function TodoList({ todos, onToggle, onUpdate, onDelete, emptyMessage }) 
 
   return (
     <ul className="todo-list">
-      {todos.map(todo => (
-        <TodoItem 
-          key={todo.todoNumber} 
-          todo={todo} 
+      {todos.map((todo) => (
+        <TodoItem
+          key={todo.todoNumber}
+          todo={todo}
           onToggle={onToggle}
           onUpdate={onUpdate}
           onDelete={onDelete}

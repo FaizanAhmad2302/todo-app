@@ -106,7 +106,10 @@ router.patch("/:id", async (req, res) => {
     return res.status(400).json({ error: "Completed must be a boolean" });
   }
 
-  const updatedTodo = await updateTodo(userId, todoNumber, { title, completed });
+  const updatedTodo = await updateTodo(userId, todoNumber, {
+    title,
+    completed,
+  });
 
   if (!updatedTodo) {
     return res.status(404).json({ error: `Todo ${todoNumber} not found` });

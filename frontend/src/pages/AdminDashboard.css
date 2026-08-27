@@ -2,7 +2,11 @@
   display: flex;
   min-height: 100vh;
   background-color: var(--background);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--text-primary);
 }
 
@@ -184,14 +188,20 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .stat-card-icon {
@@ -239,9 +249,15 @@
   font-weight: 500;
 }
 
-.stat-trend.positive { color: #10b981; }
-.stat-trend.negative { color: #ef4444; }
-.stat-trend.neutral { color: #6b7280; }
+.stat-trend.positive {
+  color: #10b981;
+}
+.stat-trend.negative {
+  color: #ef4444;
+}
+.stat-trend.neutral {
+  color: #6b7280;
+}
 
 /* Recent Activity */
 .admin-recent-activity {
@@ -287,9 +303,18 @@
   font-size: 1.2rem;
 }
 
-.activity-icon.info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-.activity-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.activity-icon.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.activity-icon.info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+.activity-icon.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.activity-icon.warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
 
 .activity-details p {
   margin: 0 0 4px 0;
@@ -363,11 +388,21 @@
   border-bottom: none;
 }
 
-.fw-500 { font-weight: 500; }
-.fw-600 { font-weight: 600; }
-.text-sm { font-size: 0.85rem; }
-.text-gray { color: var(--text-secondary); }
-.text-center { text-align: center; }
+.fw-500 {
+  font-weight: 500;
+}
+.fw-600 {
+  font-weight: 600;
+}
+.text-sm {
+  font-size: 0.85rem;
+}
+.text-gray {
+  color: var(--text-secondary);
+}
+.text-center {
+  text-align: center;
+}
 
 /* Badges */
 .badge {
@@ -380,17 +415,41 @@
   text-transform: capitalize;
 }
 
-.role-admin { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
-.role-user { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
+.role-admin {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+.role-user {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
 
-.status-active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.status-inactive { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.status-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.status-inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
 
-.verified-yes { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.verified-no { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.verified-yes {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.verified-no {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
 
-.todo-completed { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.todo-pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.todo-completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.todo-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
 
 .empty-state {
   padding: 48px !important;
@@ -413,8 +472,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .admin-loading-skeleton {
@@ -425,14 +490,23 @@
 }
 
 .skeleton-pulse {
-  background: linear-gradient(90deg, var(--border) 25%, var(--card-bg) 50%, var(--border) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--border) 25%,
+    var(--card-bg) 50%,
+    var(--border) 75%
+  );
   background-size: 200% 100%;
   animation: pulse 1.5s infinite linear;
 }
 
 @keyframes pulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .admin-error-banner {
@@ -462,8 +536,14 @@
   opacity: 0.9;
 }
 
-.stat-card-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.stat-card-icon.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.stat-card-icon.success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.stat-card-icon.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
 
 /* Admin Modals */
 .modal-overlay {
@@ -488,7 +568,9 @@
   padding: 32px;
   width: 100%;
   max-width: 440px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border, #e5e7eb);
   position: relative;
   transform: scale(0.95);
@@ -496,7 +578,9 @@
 }
 
 @keyframes scaleUp {
-  to { transform: scale(1); }
+  to {
+    transform: scale(1);
+  }
 }
 
 .modal-content h2 {

@@ -72,7 +72,7 @@ PORT=3000
 ```
 
 > [!IMPORTANT]
-> The `.env` file contains credentials and **must not** be committed to version control. 
+> The `.env` file contains credentials and **must not** be committed to version control.
 
 ### 3. Start the Backend API
 
@@ -83,7 +83,8 @@ npm install
 # Start the Express server
 node server.js
 ```
-*The backend server will start on port 3000.*
+
+_The backend server will start on port 3000._
 
 ### 4. Start the Frontend UI
 
@@ -99,13 +100,14 @@ npm install
 npm run dev
 ```
 
-*The UI will be available at `http://localhost:5173`. Open this URL in your browser.*
+_The UI will be available at `http://localhost:5173`. Open this URL in your browser._
 
 ---
 
 ## Frontend UI
 
-The frontend is a fully responsive Single Page Application (SPA) located in the `/frontend` directory. 
+The frontend is a fully responsive Single Page Application (SPA) located in the `/frontend` directory.
+
 - It uses `todoApi.js` to communicate with the Express backend via the `fetch` API.
 - All backend errors (like Rate Limiting or network issues) are gracefully caught and displayed as UI Toasts.
 - To configure the frontend API URL, you can create a `.env` file inside the `frontend` folder:
@@ -119,15 +121,15 @@ The frontend is a fully responsive Single Page Application (SPA) located in the 
 
 You can also manage your tasks completely from the terminal! Run commands with `node index.js <command>`.
 
-| Command                 | Description                              |
-| ----------------------- | ---------------------------------------- |
-| `node index.js add "title"`| Create a new todo                        |
-| `node index.js list`      | List all todos                           |
-| `node index.js list --completed`| List completed todos                     |
-| `node index.js done <number>`| Toggle todo completion status            |
+| Command                               | Description                              |
+| ------------------------------------- | ---------------------------------------- |
+| `node index.js add "title"`           | Create a new todo                        |
+| `node index.js list`                  | List all todos                           |
+| `node index.js list --completed`      | List completed todos                     |
+| `node index.js done <number>`         | Toggle todo completion status            |
 | `node index.js edit <number> "title"` | Rename a todo                            |
-| `node index.js rm <number>`| Delete a single todo (with confirmation) |
-| `node index.js clear --completed`| Delete all completed todos               |
+| `node index.js rm <number>`           | Delete a single todo (with confirmation) |
+| `node index.js clear --completed`     | Delete all completed todos               |
 
 ---
 
@@ -135,16 +137,16 @@ You can also manage your tasks completely from the terminal! Run commands with `
 
 The HTTP API is served by Express 5. All endpoints are under `/todos`.
 
-| Method   | Path                     | Body                                                | Description             |
-| -------- | ------------------------ | --------------------------------------------------- | ----------------------- |
-| `GET`    | `/todos`                 | —                                                   | List all todos          |
-| `GET`    | `/todos?completed=true`  | —                                                   | List completed todos    |
-| `POST`   | `/todos`                 | `{ "title": "Buy milk" }`                           | Create a todo           |
-| `PATCH`  | `/todos/:id`             | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo           |
-| `DELETE` | `/todos/:id`             | —                                                   | Delete one todo         |
-| `DELETE` | `/todos?completed=true`  | —                                                   | Delete completed todos  |
+| Method   | Path                    | Body                                                | Description            |
+| -------- | ----------------------- | --------------------------------------------------- | ---------------------- |
+| `GET`    | `/todos`                | —                                                   | List all todos         |
+| `GET`    | `/todos?completed=true` | —                                                   | List completed todos   |
+| `POST`   | `/todos`                | `{ "title": "Buy milk" }`                           | Create a todo          |
+| `PATCH`  | `/todos/:id`            | `{ "title": "..." }` and/or `{ "completed": true }` | Update a todo          |
+| `DELETE` | `/todos/:id`            | —                                                   | Delete one todo        |
+| `DELETE` | `/todos?completed=true` | —                                                   | Delete completed todos |
 
-*(Note: Unfiltered bulk deletion `DELETE /todos` is intentionally blocked by the API for safety).*
+_(Note: Unfiltered bulk deletion `DELETE /todos` is intentionally blocked by the API for safety)._
 
 ---
 

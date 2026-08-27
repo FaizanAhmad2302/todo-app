@@ -17,13 +17,13 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests) if desired, 
+      // Allow requests with no origin (like mobile apps or curl requests) if desired,
       // but for strict browser security we check if it's in the allowed list.
       // Since it's an API meant for our frontend, we strict check.
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('CORS policy violation: Unauthorized origin'));
+        callback(new Error("CORS policy violation: Unauthorized origin"));
       }
     },
     credentials: true,

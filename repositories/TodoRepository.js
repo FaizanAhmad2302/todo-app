@@ -5,11 +5,11 @@ class TodoRepository {
   async create(data) {
     return await Todo.create(data);
   }
-  
+
   async findAll(userId) {
     return await Todo.find({ userId }).sort({ todoNumber: 1 });
   }
-  
+
   async findByNumber(userId, todoNumber) {
     return await Todo.findOne({ userId, todoNumber });
   }
@@ -34,7 +34,9 @@ class TodoRepository {
   }
 
   async findIncomplete(userId) {
-    return await Todo.find({ userId, completed: false }).sort({ todoNumber: 1 });
+    return await Todo.find({ userId, completed: false }).sort({
+      todoNumber: 1,
+    });
   }
 
   async deleteCompleted(userId) {
@@ -54,7 +56,7 @@ class TodoRepository {
 
     return counter.seq;
   }
-  
+
   // Admin Methods
   async findAllAdmin() {
     return await Todo.find().sort({ todoNumber: 1 });

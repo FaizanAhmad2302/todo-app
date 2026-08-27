@@ -32,11 +32,15 @@ describe("Auth API", () => {
     const res = await fetch(`${baseUrl}/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Test User", email: "test@example.com", password: "password123" }),
+      body: JSON.stringify({
+        name: "Test User",
+        email: "test@example.com",
+        password: "password123",
+      }),
     });
 
     assert.strictEqual(res.status, 201);
-    
+
     const user = await User.findOne({ email: "test@example.com" });
     assert.ok(user);
     assert.strictEqual(user.name, "Test User");
@@ -51,7 +55,10 @@ describe("Auth API", () => {
     const res = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "login@example.com", password: "password123" }),
+      body: JSON.stringify({
+        email: "login@example.com",
+        password: "password123",
+      }),
     });
 
     assert.strictEqual(res.status, 200);

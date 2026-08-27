@@ -3,7 +3,11 @@ const User = require("../models/User");
 const Session = require("../models/Session");
 const ResetToken = require("../models/ResetToken");
 
-async function createTestUser(email = "test@example.com", password = "Password123!", role = "user") {
+async function createTestUser(
+  email = "test@example.com",
+  password = "Password123!",
+  role = "user"
+) {
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await User.create({
     name: "Test User",
@@ -19,14 +23,14 @@ async function createTestUser(email = "test@example.com", password = "Password12
 function parseCookies(response) {
   const raw = response.headers.get("set-cookie");
   if (!raw) return "";
-  
+
   const cookies = [];
   const parts = raw.split(",");
   for (const p of parts) {
     const match = p.match(/(accessToken|refreshToken|familyId)=([^;]+)/);
     if (match) {
       // Avoid duplicating cookies if split incorrectly
-      if (!cookies.some(c => c.startsWith(match[1]))) {
+      if (!cookies.some((c) => c.startsWith(match[1]))) {
         cookies.push(`${match[1]}=${match[2]}`);
       }
     }
@@ -34,12 +38,16 @@ function parseCookies(response) {
   return cookies.join("; ");
 }
 
-async function loginUser(baseUrl, email = "test@example.com", password = "Password123!") {
+async function loginUser(
+  baseUrl,
+  email = "test@example.com",
+  password = "Password123!"
+) {
   const res = await fetch(`${baseUrl}/auth/login`, {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Origin": "http://localhost:5173"
+      Origin: "http://localhost:5173",
     },
     body: JSON.stringify({ email, password }),
   });
@@ -50,5 +58,5 @@ async function loginUser(baseUrl, email = "test@example.com", password = "Passwo
 module.exports = {
   createTestUser,
   loginUser,
-  parseCookies
+  parseCookies,
 };

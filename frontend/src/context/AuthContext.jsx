@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiFetch } from '../services/todoApi';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import { apiFetch } from "../services/todoApi";
 
 const AuthContext = createContext();
 
@@ -13,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const res = await apiFetch('/auth/me');
+        const res = await apiFetch("/auth/me");
         setCurrentUser(res.user);
       } catch (err) {
         setCurrentUser(null);
@@ -27,15 +33,15 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
     };
 
-    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
     return () => {
-      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
     };
   }, []);
 
   const login = async (email, password) => {
-    const res = await apiFetch('/auth/login', {
-      method: 'POST',
+    const res = await apiFetch("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
     setCurrentUser(res.user);
@@ -43,16 +49,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (name, email, password) => {
-    const res = await apiFetch('/auth/signup', {
-      method: 'POST',
+    const res = await apiFetch("/auth/signup", {
+      method: "POST",
       body: JSON.stringify({ name, email, password }),
     });
     return res;
   };
 
   const verifyOtp = async (email, otp) => {
-    const res = await apiFetch('/auth/verify-otp', {
-      method: 'POST',
+    const res = await apiFetch("/auth/verify-otp", {
+      method: "POST",
       body: JSON.stringify({ email, otp }),
     });
     setCurrentUser(res.user);
@@ -60,14 +66,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const reloadUser = async () => {
-    const res = await apiFetch('/auth/me');
+    const res = await apiFetch("/auth/me");
     setCurrentUser(res.user);
     return res.user;
   };
 
   const logout = async () => {
     try {
-      await apiFetch('/auth/logout', { method: 'POST' });
+      await apiFetch("/auth/logout", { method: "POST" });
     } catch (err) {
       // Ignore network errors on logout, just clear client state
     } finally {
@@ -80,7 +86,18 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, loading, login, signup, verifyOtp, logout, forceLogout, reloadUser }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        loading,
+        login,
+        signup,
+        verifyOtp,
+        logout,
+        forceLogout,
+        reloadUser,
+      }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );
