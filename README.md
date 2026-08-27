@@ -30,6 +30,7 @@
 This application implements a complete feature set for managing users, sessions, and tasks securely.
 
 ### 🔐 Authentication & Security
+
 - **Email Verification**: Mandatory 6-digit OTP email verification for new accounts.
 - **JWT & Cookies**: Secure HttpOnly, SameSite cookies for authentication; localStorage is completely avoided.
 - **Refresh Token Rotation**: Automatic token refresh with reuse detection that instantly revokes compromised sessions.
@@ -38,15 +39,18 @@ This application implements a complete feature set for managing users, sessions,
 - **Rate Limiting**: Protection against brute-force attacks on sensitive endpoints.
 
 ### 📝 Todo Management
+
 - **User Isolation**: Users can securely create, view, update, and delete their own tasks with strict privacy boundaries.
 - **Bulk Deletion**: Easily clear all completed or incomplete tasks with built-in safety confirmations.
 - **Atomic IDs**: Todos are numbered sequentially per user (e.g., Task 1, Task 2) rather than using complex database IDs.
 
 ### 👤 Profile Management
+
 - **Secure Updates**: Display name changes and password resets require OTP verification and/or current password validation.
 - **Protected Fields**: The system prevents unauthorized tampering with roles, emails, or account status flags.
 
 ### 🛡️ Administrative Interface
+
 - **Global Oversight**: Administrators can view, edit, or delete any task in the entire system.
 - **User Moderation**: Administrators can view all standard users, toggle their active status (instantly terminating sessions), or delete accounts entirely (cascading deletes to associated tasks).
 
@@ -79,6 +83,7 @@ cp .env.example .env
 ```
 
 Ensure the following variables are properly set in your `.env` file:
+
 - `MONGODB_URI`
 - `JWT_SECRET` & `JWT_REFRESH_SECRET`
 - `RESEND_API_KEY` (for OTP emails)
@@ -97,7 +102,7 @@ npm install
 npm run dev
 ```
 
-*The backend server will start on port 3000.*
+_The backend server will start on port 3000._
 
 ### 4. Start the Frontend UI
 
@@ -113,15 +118,16 @@ npm install
 npm run dev
 ```
 
-*The UI will be available at `http://localhost:5173`. Open this URL in your browser.*
+_The UI will be available at `http://localhost:5173`. Open this URL in your browser._
 
 ---
 
 ## Security Architecture
 
 The backend strictly enforces the following security measures:
+
 - **Passwords**: Hashed with `bcrypt` (Salt rounds: 10).
-- **Authentication**: JWTs are transmitted *only* via `HttpOnly` cookies. The payload never contains sensitive user information.
+- **Authentication**: JWTs are transmitted _only_ via `HttpOnly` cookies. The payload never contains sensitive user information.
 - **Authorization**: Role-based middleware intercepts requests to `/admin/*` routes, rejecting any non-administrators with a `403 Forbidden` status.
 - **Data Integrity**: Input validation ensures that only allowed fields are processed. Unknown fields are rejected with a `400 Bad Request`.
 
