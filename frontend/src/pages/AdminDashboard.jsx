@@ -389,6 +389,8 @@ export default function AdminDashboard() {
               <th>Title</th>
               <th>Owner Name</th>
               <th>Owner Email</th>
+              <th>Priority</th>
+              <th>Due Date</th>
               <th>Status</th>
               <th>Created At</th>
               <th>Updated At</th>
@@ -398,7 +400,7 @@ export default function AdminDashboard() {
           <tbody>
             {todos.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center empty-state">
+                <td colSpan="9" className="text-center empty-state">
                   No todos found.
                 </td>
               </tr>
@@ -413,6 +415,30 @@ export default function AdminDashboard() {
                     <td className="fw-500">{todo.title}</td>
                     <td>{owner.name}</td>
                     <td className="text-gray text-sm">{owner.email}</td>
+                    <td>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "2px 6px",
+                          borderRadius: "12px",
+                          backgroundColor:
+                            todo.priority === "High"
+                              ? "var(--accent)"
+                              : todo.priority === "Medium"
+                              ? "#f59e0b"
+                              : "var(--border)",
+                          color:
+                            todo.priority === "High" || todo.priority === "Medium"
+                              ? "white"
+                              : "var(--text-muted)",
+                        }}
+                      >
+                        {todo.priority || "Medium"}
+                      </span>
+                    </td>
+                    <td className="text-sm text-gray">
+                      {todo.dueDate ? new Date(todo.dueDate).toLocaleString() : "None"}
+                    </td>
                     <td>
                       <span
                         className={`badge todo-${todo.completed ? "completed" : "pending"}`}

@@ -108,23 +108,25 @@ The backend provides interactive Swagger/OpenAPI documentation.
 - **Authentication Behavior**: Users can log in directly through the Swagger interface. The browser securely handles the cookies, allowing the user to subsequently test protected endpoints within the UI.
 - **Security**: The documentation details request structures but is strictly configured not to expose environmental secrets or database credentials.
 
+### Due Dates and Times
+
+- **Purpose**: Allow users to assign deadlines to tasks.
+- **Rules**: Users can select a date and time when creating or editing a task. Due dates cannot be set in the past when creating a new task (enforced on the backend).
+- **Sorting**: The system can sort by Due Date, placing tasks with due dates first (chronologically).
+
+### Priority Levels
+
+- **Purpose**: Help users identify and focus on the most important tasks.
+- **Who can use it**: All authenticated users.
+- **Priority Options**: Low, Medium, High.
+- **Business Rule**: If no priority is provided, it defaults to Medium. Priority validation is enforced on the backend.
+- **Filtering & Sorting**: Users can filter and sort tasks by priority.
+
 ## 4. New / Proposed Features
 
 Based on the current architecture, the following enhancements are proposed. These features provide significant value and can be implemented completely **FREE** using the existing Node.js/MongoDB stack.
 
 **Proposed / Future Features:**
-
-1. **Due Dates and Times**
-   - _Purpose_: Allow users to assign deadlines to tasks.
-   - _Who can use it_: All users.
-   - _How it works_: Users can select a date and time when creating or editing a task. The system stores the due date/time in the database, and the frontend can display tasks based on their deadlines.
-   - _Business Rule_: Due dates cannot be set in the past when creating a new task.
-
-2. **Priority Levels**
-   - _Purpose_: Help users identify and focus on the most important tasks.
-   - _Who can use it_: All users.
-   - _How it works_: Users can assign a priority level to each task, such as Low, Medium, or High.
-   - _Business Rule_: If no priority is provided, the system defaults to "Medium".
 
 3. **Categories and Tags**
    - _Purpose_: Organize tasks into logical groups such as Work, Personal, Shopping, or Groceries.
@@ -247,8 +249,8 @@ The Swagger/OpenAPI interface sits alongside the Frontend Client, acting as an i
 | FR-009      | Admin User Listing     | Implemented       |
 | FR-010      | Admin User Management  | Implemented       |
 | FR-011      | Admin Todo Oversight   | Implemented       |
-| PR-001      | Due Dates and Times    | Proposed / Future |
-| PR-002      | Priority Levels        | Proposed / Future |
+| PR-001      | Due Dates and Times    | Implemented       |
+| PR-002      | Priority Levels        | Implemented       |
 | PR-003      | Categories and Tags    | Proposed / Future |
 | PR-004      | Todo Activity History  | Proposed / Future |
 | PR-005      | Productivity Dashboard | Proposed / Future |
@@ -268,11 +270,9 @@ The proposed features have been ranked to guide future development sprints:
 **High Priority**
 
 - _Categories and Tags_: Essential for users to organize tasks as their usage grows.
-- _Due Dates and Times_: Fundamental to time-management systems.
 
 **Medium Priority**
 
-- _Priority Levels_: Useful but secondary to categorization and dates.
 - _Soft Delete and Trash Bin_: A great usability enhancement that prevents frustration from accidental deletions.
 
 **Low Priority**

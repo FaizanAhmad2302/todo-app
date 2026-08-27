@@ -183,6 +183,12 @@ const swaggerDefinition = {
             description:
               "Optional due date and time. Must not be in the past when creating.",
           },
+          priority: {
+            type: "string",
+            enum: ["Low", "Medium", "High"],
+            example: "High",
+            description: "Optional priority level. Defaults to Medium.",
+          },
         },
       },
       TodoUpdateRequest: {
@@ -207,9 +213,15 @@ const swaggerDefinition = {
             description: "Updated due date. Send null to remove.",
             nullable: true,
           },
+          priority: {
+            type: "string",
+            enum: ["Low", "Medium", "High"],
+            example: "Low",
+            description: "Updated priority level.",
+          },
         },
         description:
-          "At least one field (title, completed, or dueDate) is required. Unknown fields are rejected.",
+          "At least one field (title, completed, dueDate, or priority) is required. Unknown fields are rejected.",
       },
       AdminTodoUpdateRequest: {
         type: "object",
@@ -230,6 +242,12 @@ const swaggerDefinition = {
             example: "2026-12-31T23:59:59.000Z",
             description: "New due date. Send null to remove.",
             nullable: true,
+          },
+          priority: {
+            type: "string",
+            enum: ["Low", "Medium", "High"],
+            example: "High",
+            description: "New priority level.",
           },
         },
         description:
@@ -377,6 +395,11 @@ const swaggerDefinition = {
             format: "date-time",
             example: "2026-12-31T23:59:59.000Z",
             nullable: true,
+          },
+          priority: {
+            type: "string",
+            enum: ["Low", "Medium", "High"],
+            example: "Medium",
           },
           userId: { type: "string", example: "507f1f77bcf86cd799439011" },
           createdAt: { type: "string", format: "date-time" },

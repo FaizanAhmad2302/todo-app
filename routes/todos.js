@@ -26,6 +26,12 @@ function parseCompleted(value) {
   return null;
 }
 
+function parsePriority(value) {
+  if (value === undefined) return undefined;
+  if (["Low", "Medium", "High"].includes(value)) return value;
+  return null;
+}
+
 // GET /todos
 // GET /todos?completed=true
 // GET /todos?completed=false
@@ -52,9 +58,16 @@ function parseCompleted(value) {
  *         name: sort
  *         schema:
  *           type: string
- *           enum: ["dueDate"]
+ *           enum: ["dueDate", "priority"]
  *         required: false
- *         description: Sort the returned todos. Currently supports "dueDate".
+ *         description: Sort the returned todos. Currently supports "dueDate" and "priority".
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: ["Low", "Medium", "High"]
+ *         required: false
+ *         description: Filter by priority.
  *     responses:
  *       200:
  *         description: Array of todos (may be empty)
@@ -79,6 +92,7 @@ function parseCompleted(value) {
  */
 router.get("/", async (req, res) => {
   const completed = parseCompleted(req.query.completed);
+  const priority = parsePriority(req.query.priority);
   const userId = req.user.id;
   const sort = req.query.sort;
 
@@ -88,18 +102,24 @@ router.get("/", async (req, res) => {
       .json({ error: 'completed must be "true" or "false"' });
   }
 
+  if (priority === null) {
+    return res
+      .status(400)
+      .json({ error: 'priority must be "Low", "Medium", or "High"' });
+  }
+
   if (completed === true) {
-    const todos = await getCompletedTodos(userId, sort);
+    const todos = await getCompletedTodos(userId, sort, priority);
     return res.status(200).json(todos);
   }
 
   if (completed === false) {
-    const todos = await getIncompleteTodos(userId, sort);
+    const todos = await getIncompleteTodos(userId, sort, priority);
     return res.status(200).json(todos);
   }
 
-  const todos = await getTodos(userId, sort);
-  res.status(200).json(todos);
+  const todos = await getTodos(userId, sort, priority);
+  return res.status(200).json(todos);
 });
 
 // GET /todos/:id
@@ -205,13 +225,16 @@ router.get("/:id", async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post("/", async (req, res) => {
-  const { title, dueDate } = req.body;
+  const { title, dueDate, priority } = req.body;
   const userId = req.user.id;
 
-  const todoNumber = await addTodo(userId, title, dueDate);
-  const todo = await getTodo(userId, todoNumber);
-
-  res.status(201).json(todo);
+  try {
+    const todoNumber = await addTodo(userId, title, dueDate, priority);
+    const todo = await getTodo(userId, todoNumber);
+    return res.status(201).json(todo);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
 });
 
 // PATCH /todos/:id
@@ -274,12 +297,16 @@ router.post("/", async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.patch("/:id", async (req, res) => {
-  const todoNumber = Number(req.params.id);
   const userId = req.user.id;
+  const todoNumber = parseInt(req.params.id, 10);
 
-  const { title, completed, dueDate } = req.body;
+  if (isNaN(todoNumber)) {
+    return res.status(400).json({ error: "Invalid todo ID" });
+  }
 
-  const allowedFields = ["title", "completed", "dueDate"];
+  const { title, completed, dueDate, priority } = req.body;
+
+  const allowedFields = ["title", "completed", "dueDate", "priority"];
   const unknownFields = Object.keys(req.body).filter(
     (key) => !allowedFields.includes(key)
   );
@@ -290,9 +317,15 @@ router.patch("/:id", async (req, res) => {
     });
   }
 
-  if (title === undefined && completed === undefined && dueDate === undefined) {
+  if (
+    title === undefined &&
+    completed === undefined &&
+    dueDate === undefined &&
+    priority === undefined
+  ) {
     return res.status(400).json({
-      error: "At least one field (title, completed, or dueDate) is required",
+      error:
+        "At least one field (title, completed, dueDate, or priority) is required",
     });
   }
 
@@ -304,6 +337,7 @@ router.patch("/:id", async (req, res) => {
     title,
     completed,
     dueDate,
+    priority,
   });
 
   if (!updatedTodo) {
