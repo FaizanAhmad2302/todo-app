@@ -8,6 +8,7 @@ export function TodoList({
   onToggle,
   onUpdate,
   onDelete,
+  onHistory,
   emptyMessage,
 }) {
   if (todos.length === 0) {
@@ -29,6 +30,7 @@ export function TodoList({
           onToggle={onToggle}
           onUpdate={onUpdate}
           onDelete={onDelete}
+          onHistory={onHistory}
         />
       ))}
     </ul>

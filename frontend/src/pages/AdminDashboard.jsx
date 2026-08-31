@@ -9,6 +9,7 @@ import {
   adminDeleteUser,
 } from "../services/todoApi";
 import { Toast } from "../components/Toast";
+import { TodoHistoryModal } from "../components/TodoHistoryModal";
 import "./AdminDashboard.css";
 
 const toDatetimeLocal = (isoString) => {
@@ -36,6 +37,8 @@ export default function AdminDashboard() {
   const [editTodoCompleted, setEditTodoCompleted] = useState(false);
   const [editTodoDueDate, setEditTodoDueDate] = useState("");
   const [editTodoPriority, setEditTodoPriority] = useState("Medium");
+
+  const [historyModalTodo, setHistoryModalTodo] = useState(null);
 
   const [deleteTodoId, setDeleteTodoId] = useState(null);
 
@@ -577,6 +580,13 @@ export default function AdminDashboard() {
                       <button
                         className="btn-link text-sm"
                         style={{ marginRight: "8px" }}
+                        onClick={() => setHistoryModalTodo(todo)}
+                      >
+                        History
+                      </button>
+                      <button
+                        className="btn-link text-sm"
+                        style={{ marginRight: "8px" }}
                         onClick={() => {
                           setEditTodoId(todo.todoNumber);
                           setEditTodoTitle(todo.title);
@@ -858,6 +868,14 @@ export default function AdminDashboard() {
             </form>
           </div>
         </div>
+      )}
+
+      {historyModalTodo && (
+        <TodoHistoryModal
+          todo={historyModalTodo}
+          isAdmin={true}
+          onClose={() => setHistoryModalTodo(null)}
+        />
       )}
 
       <Toast

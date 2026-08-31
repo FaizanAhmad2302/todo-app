@@ -13,6 +13,7 @@ const {
   deleteCompletedTodos,
   deleteIncompleteTodos,
 } = require("../todo");
+const { getTodoHistory } = require("../services/TodoActivityService");
 
 const router = express.Router();
 
@@ -201,6 +202,19 @@ router.get("/:id", async (req, res) => {
   }
 
   res.status(200).json(todo);
+});
+
+// GET /todos/:id/history
+router.get("/:id/history", async (req, res) => {
+  const todoNumber = Number(req.params.id);
+  const userId = req.user.id;
+
+  if (isNaN(todoNumber) || !Number.isInteger(todoNumber) || todoNumber < 1) {
+    return res.status(400).json({ error: "Invalid todo number" });
+  }
+
+  const history = await getTodoHistory(userId, todoNumber);
+  res.status(200).json(history);
 });
 
 // POST /todos

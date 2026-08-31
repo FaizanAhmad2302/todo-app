@@ -157,6 +157,11 @@ export const deleteIncompleteTodos = async () => {
   });
 };
 
+export const deleteAllTodos = async () => {
+  await deleteCompletedTodos();
+  await deleteIncompleteTodos();
+};
+
 // Categories specific exports
 export const getCategories = async () => {
   return apiFetch("/categories");
@@ -250,4 +255,13 @@ export const adminDeleteUser = async (id) => {
   return apiFetch(`/admin/users/${id}`, {
     method: "DELETE",
   });
+};
+
+// Activity History exports
+export const getTodoHistory = async (todoNumber) => {
+  return apiFetch(`/todos/${todoNumber}/history`);
+};
+
+export const getAdminTodoHistory = async (todoNumber) => {
+  return apiFetch(`/admin/todos/${todoNumber}/history`);
 };

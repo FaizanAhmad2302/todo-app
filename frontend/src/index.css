@@ -753,3 +753,188 @@ h3,
   color: var(--accent-hover);
   text-decoration: underline;
 }
+
+/* Modal & Activity History Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(54, 41, 35, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 28px;
+  box-shadow: 0 12px 36px rgba(54, 41, 35, 0.15);
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalScaleIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.history-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin: 16px 0;
+}
+
+.history-item {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.history-item:hover {
+  border-color: #dfd6cb;
+  box-shadow: var(--shadow-md);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.action-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.action-badge.created {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.action-badge.updated {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.action-badge.completed {
+  background-color: #f5f3ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+.action-badge.uncompleted {
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.action-badge.deleted {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.actor-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.actor-role-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  text-transform: uppercase;
+}
+
+.diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: var(--background);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+
+.diff-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.8125rem;
+}
+
+.diff-field-name {
+  font-weight: 600;
+  color: var(--text-main);
+  min-width: 70px;
+}
+
+.diff-val-from {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.diff-arrow {
+  color: var(--text-light);
+  font-size: 0.75rem;
+}
+
+.diff-val-to {
+  color: #059669;
+  font-weight: 500;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}

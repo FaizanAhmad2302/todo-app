@@ -15,6 +15,7 @@ export function TodoItem({
   onToggle,
   onUpdate,
   onDelete,
+  onHistory,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
@@ -358,6 +359,30 @@ export function TodoItem({
               <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
             </svg>
           </button>
+
+          <button
+            className="icon-btn"
+            onClick={() => onHistory && onHistory(todo)}
+            disabled={isSubmitting}
+            aria-label="View todo history"
+            title="History"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 12a9 9 0 1 0 3-6.7" />
+              <polyline points="3 3 3 9 9 9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+          </button>
+
           <button
             className="icon-btn delete"
             onClick={() => {

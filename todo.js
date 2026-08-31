@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const TodoRepository = require("./repositories/TodoRepository");
 const Category = require("./models/Category");
 const Tag = require("./models/Tag");
+const { recordActivity } = require("./services/TodoActivityService");
 const { MAX_TITLE_LENGTH, MAX_TAGS_PER_TODO } = require("./constants");
 const { ValidationError } = require("./errors");
 
@@ -115,11 +116,14 @@ async function validateTagsAssignment(userId, tags) {
 
 async function addTodo(userId, title, dueDate, priority, categoryId, tags) {
   title = validateTitle(title);
+
   const validatedDueDate = validateDueDate(dueDate, true);
+
   const validatedCategory = await validateCategoryAssignment(
     userId,
     categoryId
   );
+
   const validatedTags = await validateTagsAssignment(userId, tags);
 
   const todoNumber = await repository.getNextNumber();
@@ -133,6 +137,7 @@ async function addTodo(userId, title, dueDate, priority, categoryId, tags) {
   if (validatedDueDate) {
     data.dueDate = validatedDueDate;
   }
+
   data.priority = validatePriority(priority);
 
   if (validatedCategory !== undefined) {
@@ -144,6 +149,20 @@ async function addTodo(userId, title, dueDate, priority, categoryId, tags) {
   }
 
   const todo = await repository.create(data);
+
+  await recordActivity({
+    userId,
+    todoNumber: todo.todoNumber,
+    action: "CREATED",
+    changes: {
+      title: todo.title,
+      priority: todo.priority,
+      dueDate: todo.dueDate || null,
+      categoryId: todo.categoryId || null,
+      tags: todo.tags || [],
+    },
+    performedBy: userId,
+  });
 
   return todo.todoNumber;
 }
@@ -167,22 +186,66 @@ async function toggleTodo(userId, todoNumber) {
     return false;
   }
 
+  const newCompletedStatus = !todo.completed;
+
   const updatedTodo = await repository.update(userId, todoNumber, {
-    completed: !todo.completed,
+    completed: newCompletedStatus,
   });
 
-  return updatedTodo !== null;
+  if (!updatedTodo) {
+    return false;
+  }
+
+  await recordActivity({
+    userId,
+    todoNumber,
+    action: newCompletedStatus ? "COMPLETED" : "UNCOMPLETED",
+    changes: {
+      completed: {
+        from: todo.completed,
+        to: newCompletedStatus,
+      },
+    },
+    performedBy: userId,
+  });
+
+  return true;
 }
 
 async function renameTodo(userId, todoNumber, title) {
   validateTodoNumber(todoNumber);
   title = validateTitle(title);
 
+  const todo = await repository.findByNumber(userId, todoNumber);
+
+  if (!todo) {
+    return false;
+  }
+
+  const oldTitle = todo.title;
+
   const updatedTodo = await repository.update(userId, todoNumber, {
     title,
   });
 
-  return updatedTodo !== null;
+  if (!updatedTodo) {
+    return false;
+  }
+
+  await recordActivity({
+    userId,
+    todoNumber,
+    action: "UPDATED",
+    changes: {
+      title: {
+        from: oldTitle,
+        to: updatedTodo.title,
+      },
+    },
+    performedBy: userId,
+  });
+
+  return true;
 }
 
 async function updateTodo(
@@ -191,16 +254,75 @@ async function updateTodo(
   { title, completed, dueDate, priority, categoryId, tags }
 ) {
   validateTodoNumber(todoNumber);
+
+  const todo = await repository.findByNumber(userId, todoNumber);
+
+  if (!todo) {
+    return null;
+  }
+
   const update = {};
-  if (title !== undefined) update.title = validateTitle(title);
-  if (completed !== undefined) update.completed = completed;
-  if (priority !== undefined) update.priority = validatePriority(priority);
+  const changes = {};
+
+  if (title !== undefined) {
+    const newTitle = validateTitle(title);
+    update.title = newTitle;
+
+    if (todo.title !== newTitle) {
+      changes.title = {
+        from: todo.title,
+        to: newTitle,
+      };
+    }
+  }
+
+  if (completed !== undefined) {
+    update.completed = completed;
+
+    if (todo.completed !== completed) {
+      changes.completed = {
+        from: todo.completed,
+        to: completed,
+      };
+    }
+  }
+
+  if (priority !== undefined) {
+    const newPriority = validatePriority(priority);
+    update.priority = newPriority;
+
+    if (todo.priority !== newPriority) {
+      changes.priority = {
+        from: todo.priority,
+        to: newPriority,
+      };
+    }
+  }
+
   if (dueDate !== undefined) {
     const validatedDueDate = validateDueDate(dueDate, false);
+
     if (validatedDueDate === null) {
       update.$unset = { ...update.$unset, dueDate: 1 };
+
+      if (todo.dueDate) {
+        changes.dueDate = {
+          from: todo.dueDate,
+          to: null,
+        };
+      }
     } else {
       update.dueDate = validatedDueDate;
+
+      const oldDueDate = todo.dueDate ? new Date(todo.dueDate).getTime() : null;
+      const newDueDate = validatedDueDate.getTime();
+
+      if (oldDueDate !== newDueDate) {
+        changes.dueDate = {
+          from: todo.dueDate || null,
+          to: validatedDueDate,
+        };
+      }
     }
   }
 
@@ -209,27 +331,126 @@ async function updateTodo(
       userId,
       categoryId
     );
+
     update.categoryId = validatedCategory;
+
+    const oldCategoryId = todo.categoryId
+      ? String(todo.categoryId._id || todo.categoryId)
+      : null;
+
+    const newCategoryId = validatedCategory ? String(validatedCategory) : null;
+
+    if (oldCategoryId !== newCategoryId) {
+      changes.categoryId = {
+        from: oldCategoryId,
+        to: newCategoryId,
+      };
+    }
   }
 
   if (tags !== undefined) {
     const validatedTags = await validateTagsAssignment(userId, tags);
+
     update.tags = validatedTags;
+
+    const oldTags = (todo.tags || []).map((tag) => String(tag._id || tag));
+
+    const newTags = validatedTags.map((tag) => String(tag));
+
+    const oldTagsSorted = [...oldTags].sort();
+    const newTagsSorted = [...newTags].sort();
+
+    if (JSON.stringify(oldTagsSorted) !== JSON.stringify(newTagsSorted)) {
+      changes.tags = {
+        from: oldTags,
+        to: newTags,
+      };
+    }
   }
 
-  return await repository.update(userId, todoNumber, update);
+  if (Object.keys(changes).length === 0) {
+    return todo;
+  }
+
+  const updatedTodo = await repository.update(userId, todoNumber, update);
+
+  if (!updatedTodo) {
+    return null;
+  }
+
+  await recordActivity({
+    userId,
+    todoNumber,
+    action: "UPDATED",
+    changes,
+    performedBy: userId,
+  });
+
+  return updatedTodo;
 }
 
 async function deleteTodo(userId, todoNumber) {
   validateTodoNumber(todoNumber);
 
+  const todo = await repository.findByNumber(userId, todoNumber);
+
+  if (!todo) {
+    return false;
+  }
+
   const result = await repository.delete(userId, todoNumber);
 
-  return result.deletedCount > 0;
+  if (result.deletedCount === 0) {
+    return false;
+  }
+
+  await recordActivity({
+    userId,
+    todoNumber,
+    action: "DELETED",
+    changes: {
+      title: todo.title,
+      completed: todo.completed,
+      priority: todo.priority,
+      dueDate: todo.dueDate || null,
+      categoryId: todo.categoryId || null,
+      tags: todo.tags || [],
+    },
+    performedBy: userId,
+  });
+
+  return true;
 }
 
 async function deleteAllTodos(userId) {
+  const todos = await repository.findAll(userId);
+
+  if (todos.length === 0) {
+    return 0;
+  }
+
   const result = await repository.deleteAll(userId);
+
+  if (result.deletedCount === 0) {
+    return 0;
+  }
+
+  for (const todo of todos) {
+    await recordActivity({
+      userId,
+      todoNumber: todo.todoNumber,
+      action: "DELETED",
+      changes: {
+        title: todo.title,
+        completed: todo.completed,
+        priority: todo.priority,
+        dueDate: todo.dueDate || null,
+        categoryId: todo.categoryId || null,
+        tags: todo.tags || [],
+      },
+      performedBy: userId,
+    });
+  }
 
   return result.deletedCount;
 }
@@ -255,13 +476,67 @@ async function getIncompleteTodos(userId, sortBy, priority, categoryId, tagId) {
 }
 
 async function deleteCompletedTodos(userId) {
+  const todos = await repository.findCompleted(userId);
+
+  if (todos.length === 0) {
+    return 0;
+  }
+
   const result = await repository.deleteCompleted(userId);
+
+  if (result.deletedCount === 0) {
+    return 0;
+  }
+
+  for (const todo of todos) {
+    await recordActivity({
+      userId,
+      todoNumber: todo.todoNumber,
+      action: "DELETED",
+      changes: {
+        title: todo.title,
+        completed: todo.completed,
+        priority: todo.priority,
+        dueDate: todo.dueDate || null,
+        categoryId: todo.categoryId || null,
+        tags: todo.tags || [],
+      },
+      performedBy: userId,
+    });
+  }
 
   return result.deletedCount;
 }
 
 async function deleteIncompleteTodos(userId) {
+  const todos = await repository.findIncomplete(userId);
+
+  if (todos.length === 0) {
+    return 0;
+  }
+
   const result = await repository.deleteIncomplete(userId);
+
+  if (result.deletedCount === 0) {
+    return 0;
+  }
+
+  for (const todo of todos) {
+    await recordActivity({
+      userId,
+      todoNumber: todo.todoNumber,
+      action: "DELETED",
+      changes: {
+        title: todo.title,
+        completed: todo.completed,
+        priority: todo.priority,
+        dueDate: todo.dueDate || null,
+        categoryId: todo.categoryId || null,
+        tags: todo.tags || [],
+      },
+      performedBy: userId,
+    });
+  }
 
   return result.deletedCount;
 }
