@@ -63,7 +63,7 @@ export function TodoForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ position: "relative" }}>
+    <form onSubmit={handleSubmit} className="todo-form">
       <div className="pill-input-container">
         <input
           type="text"
@@ -76,62 +76,6 @@ export function TodoForm({
           aria-label="New todo title"
           autoFocus
         />
-        <input
-          type="datetime-local"
-          className="pill-input"
-          style={{
-            flex: "0 0 auto",
-            width: "auto",
-            borderLeft: "1px solid var(--border)",
-            borderRadius: 0,
-          }}
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          disabled={isSubmitting}
-          aria-label="Due date"
-        />
-        <select
-          className="pill-input"
-          style={{
-            flex: "0 0 auto",
-            width: "auto",
-            borderLeft: "1px solid var(--border)",
-            borderRadius: 0,
-            appearance: "auto",
-            cursor: "pointer",
-          }}
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          disabled={isSubmitting}
-          aria-label="Priority"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-        <select
-          className="pill-input"
-          style={{
-            flex: "0 0 auto",
-            width: "auto",
-            maxWidth: "140px",
-            borderLeft: "1px solid var(--border)",
-            borderRadius: 0,
-            appearance: "auto",
-            cursor: "pointer",
-          }}
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          disabled={isSubmitting}
-          aria-label="Category"
-        >
-          <option value="">No Category</option>
-          {categories.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
         <button
           type="submit"
           className="pill-submit"
@@ -170,44 +114,64 @@ export function TodoForm({
         </button>
       </div>
 
+      <div className="todo-form-options">
+        <div className="todo-form-chip" title="Set due date and time">
+          <span className="chip-icon">📅</span>
+          <input
+            type="datetime-local"
+            className="chip-input"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Due date"
+          />
+        </div>
+
+        <div className="todo-form-chip" title="Set priority">
+          <span className="chip-icon">🎯</span>
+          <select
+            className="chip-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Priority"
+          >
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
+          </select>
+        </div>
+
+        <div className="todo-form-chip" title="Assign category">
+          <span className="chip-icon">📁</span>
+          <select
+            className="chip-select"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Category"
+          >
+            <option value="">No Category</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {tags.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "6px",
-            marginTop: "8px",
-            marginBottom: "16px",
-            paddingLeft: "12px",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-            Tags:
-          </span>
+        <div className="todo-form-tags">
+          <span className="tags-label">Tags:</span>
           {tags.map((t) => {
             const isSelected = selectedTags.includes(t._id);
             return (
               <button
                 key={t._id}
                 type="button"
+                className={`tag-chip ${isSelected ? "selected" : ""}`}
                 onClick={() => toggleTag(t._id)}
-                style={{
-                  padding: "2px 8px",
-                  fontSize: "0.75rem",
-                  borderRadius: "12px",
-                  border: isSelected
-                    ? "1px solid var(--accent, #6366f1)"
-                    : "1px solid var(--border)",
-                  backgroundColor: isSelected
-                    ? "rgba(99, 102, 241, 0.15)"
-                    : "transparent",
-                  color: isSelected
-                    ? "var(--accent, #6366f1)"
-                    : "var(--text-secondary)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
               >
                 #{t.name}
               </button>
@@ -216,19 +180,7 @@ export function TodoForm({
         </div>
       )}
 
-      {error && (
-        <p
-          style={{
-            color: "var(--accent)",
-            marginTop: "-16px",
-            marginBottom: "24px",
-            fontSize: "0.8rem",
-            paddingLeft: "16px",
-          }}
-        >
-          {error}
-        </p>
-      )}
+      {error && <p className="todo-form-error">{error}</p>}
     </form>
   );
 }
