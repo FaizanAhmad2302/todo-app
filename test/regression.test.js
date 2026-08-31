@@ -24,11 +24,13 @@ beforeEach(async () => {
 });
 
 after(async () => {
-  await User.deleteMany({});
-  await Session.deleteMany({});
-  await Todo.deleteMany({});
+  try {
+    await User.deleteMany({});
+    await Session.deleteMany({});
+    await Todo.deleteMany({});
+  } catch {}
   await setupDb.disconnect();
-  server.close();
+  if (server) server.close();
 });
 
 describe("Regression Tests", () => {

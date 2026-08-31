@@ -14,7 +14,19 @@ async function connect() {
   } else {
     // Otherwise, dynamically spin up an in-memory MongoDB Replica Set (supports transactions!)
     const { MongoMemoryReplSet } = require("mongodb-memory-server");
-    mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+    let attempts = 0;
+    while (attempts < 3) {
+      try {
+        mongoServer = await MongoMemoryReplSet.create({
+          replSet: { count: 1 },
+        });
+        break;
+      } catch (err) {
+        attempts++;
+        if (attempts >= 3) throw err;
+        await new Promise((res) => setTimeout(res, 250));
+      }
+    }
     const uri = mongoServer.getUri();
     await connectDatabase(uri);
   }

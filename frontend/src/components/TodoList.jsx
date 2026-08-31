@@ -3,6 +3,8 @@ import { TodoItem } from "./TodoItem";
 
 export function TodoList({
   todos,
+  categories = [],
+  tags = [],
   onToggle,
   onUpdate,
   onDelete,
@@ -22,6 +24,8 @@ export function TodoList({
         <TodoItem
           key={todo.todoNumber}
           todo={todo}
+          categories={categories}
+          tags={tags}
           onToggle={onToggle}
           onUpdate={onUpdate}
           onDelete={onDelete}

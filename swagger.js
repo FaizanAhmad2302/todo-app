@@ -50,6 +50,15 @@ const swaggerDefinition = {
         "User todo CRUD operations — each user can only access their own todos",
     },
     {
+      name: "Categories",
+      description:
+        "User category CRUD operations for organizing and grouping todos",
+    },
+    {
+      name: "Tags",
+      description: "User tag CRUD operations for tagging and labeling todos",
+    },
+    {
       name: "Profile",
       description:
         "User and admin profile management with OTP verification — each account can only update its own profile",
@@ -165,6 +174,58 @@ const swaggerDefinition = {
           },
         },
       },
+      CategoryCreateRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: {
+            type: "string",
+            example: "Work",
+            minLength: 1,
+            maxLength: 50,
+            description: "Category name (unique per user)",
+          },
+        },
+      },
+      CategoryUpdateRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: {
+            type: "string",
+            example: "Personal",
+            minLength: 1,
+            maxLength: 50,
+            description: "Updated category name",
+          },
+        },
+      },
+      TagCreateRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: {
+            type: "string",
+            example: "Urgent",
+            minLength: 1,
+            maxLength: 30,
+            description: "Tag name (unique per user)",
+          },
+        },
+      },
+      TagUpdateRequest: {
+        type: "object",
+        required: ["name"],
+        properties: {
+          name: {
+            type: "string",
+            example: "Important",
+            minLength: 1,
+            maxLength: 30,
+            description: "Updated tag name",
+          },
+        },
+      },
       TodoCreateRequest: {
         type: "object",
         required: ["title"],
@@ -188,6 +249,21 @@ const swaggerDefinition = {
             enum: ["Low", "Medium", "High"],
             example: "High",
             description: "Optional priority level. Defaults to Medium.",
+          },
+          categoryId: {
+            type: "string",
+            example: "507f1f77bcf86cd799439011",
+            description: "Optional category ID belonging to the user",
+            nullable: true,
+          },
+          tags: {
+            type: "array",
+            items: {
+              type: "string",
+              example: "507f1f77bcf86cd799439012",
+            },
+            description:
+              "Optional array of up to 10 tag IDs belonging to the user",
           },
         },
       },
@@ -219,9 +295,23 @@ const swaggerDefinition = {
             example: "Low",
             description: "Updated priority level.",
           },
+          categoryId: {
+            type: "string",
+            example: "507f1f77bcf86cd799439011",
+            description: "Updated category ID. Send null to remove.",
+            nullable: true,
+          },
+          tags: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description:
+              "Updated array of tag IDs. Send empty array to remove all tags.",
+          },
         },
         description:
-          "At least one field (title, completed, dueDate, or priority) is required. Unknown fields are rejected.",
+          "At least one field (title, completed, dueDate, priority, categoryId, or tags) is required. Unknown fields are rejected.",
       },
       AdminTodoUpdateRequest: {
         type: "object",
@@ -248,6 +338,20 @@ const swaggerDefinition = {
             enum: ["Low", "Medium", "High"],
             example: "High",
             description: "New priority level.",
+          },
+          categoryId: {
+            type: "string",
+            example: "507f1f77bcf86cd799439011",
+            description:
+              "New category ID belonging to the todo's owner. Send null to remove.",
+            nullable: true,
+          },
+          tags: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description: "New array of tag IDs belonging to the todo's owner.",
           },
         },
         description:
@@ -318,6 +422,26 @@ const swaggerDefinition = {
       },
 
       // --- Response Schemas ---
+      Category: {
+        type: "object",
+        properties: {
+          _id: { type: "string", example: "507f1f77bcf86cd799439011" },
+          name: { type: "string", example: "Work" },
+          userId: { type: "string", example: "507f1f77bcf86cd799439012" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
+      Tag: {
+        type: "object",
+        properties: {
+          _id: { type: "string", example: "507f1f77bcf86cd799439013" },
+          name: { type: "string", example: "Urgent" },
+          userId: { type: "string", example: "507f1f77bcf86cd799439012" },
+          createdAt: { type: "string", format: "date-time" },
+          updatedAt: { type: "string", format: "date-time" },
+        },
+      },
       UserInfo: {
         type: "object",
         properties: {
@@ -400,6 +524,19 @@ const swaggerDefinition = {
             type: "string",
             enum: ["Low", "Medium", "High"],
             example: "Medium",
+          },
+          categoryId: {
+            oneOf: [
+              { $ref: "#/components/schemas/Category" },
+              { type: "string" },
+            ],
+            nullable: true,
+          },
+          tags: {
+            type: "array",
+            items: {
+              oneOf: [{ $ref: "#/components/schemas/Tag" }, { type: "string" }],
+            },
           },
           userId: { type: "string", example: "507f1f77bcf86cd799439011" },
           createdAt: { type: "string", format: "date-time" },

@@ -24,7 +24,7 @@ before(async () => {
 
 after(async () => {
   await setupDb.disconnect();
-  server.close();
+  if (server) server.close();
 });
 
 // A helper to initialize the db

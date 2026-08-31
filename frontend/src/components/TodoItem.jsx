@@ -8,17 +8,44 @@ const toDatetimeLocal = (isoString) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
+export function TodoItem({
+  todo,
+  categories = [],
+  tags = [],
+  onToggle,
+  onUpdate,
+  onDelete,
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
   const [editDueDate, setEditDueDate] = useState(toDatetimeLocal(todo.dueDate));
   const [editPriority, setEditPriority] = useState(todo.priority || "Medium");
+
+  const initialCategoryId =
+    typeof todo.categoryId === "object" && todo.categoryId !== null
+      ? todo.categoryId._id
+      : todo.categoryId || "";
+  const [editCategoryId, setEditCategoryId] = useState(initialCategoryId);
+
+  const initialTags = Array.isArray(todo.tags)
+    ? todo.tags.map((t) => (typeof t === "object" && t !== null ? t._id : t))
+    : [];
+  const [editSelectedTags, setEditSelectedTags] = useState(initialTags);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleToggle = async () => {
     setIsSubmitting(true);
     await onToggle(todo);
     setIsSubmitting(false);
+  };
+
+  const toggleEditTag = (tagId) => {
+    setEditSelectedTags((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
   };
 
   const handleUpdate = async () => {
@@ -33,15 +60,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       setEditTitle(todo.title);
       setEditDueDate(toDatetimeLocal(todo.dueDate));
       setEditPriority(todo.priority || "Medium");
-      return;
-    }
-
-    if (
-      trimmedTitle === todo.title &&
-      isoDueDate === currentIsoDueDate &&
-      editPriority === (todo.priority || "Medium")
-    ) {
-      setIsEditing(false);
+      setEditCategoryId(initialCategoryId);
+      setEditSelectedTags(initialTags);
       return;
     }
 
@@ -50,6 +70,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       title: trimmedTitle,
       dueDate: isoDueDate,
       priority: editPriority,
+      categoryId: editCategoryId || null,
+      tags: editSelectedTags,
     });
     setIsSubmitting(false);
     setIsEditing(false);
@@ -62,6 +84,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       setEditTitle(todo.title);
       setEditDueDate(toDatetimeLocal(todo.dueDate));
       setEditPriority(todo.priority || "Medium");
+      setEditCategoryId(initialCategoryId);
+      setEditSelectedTags(initialTags);
     }
   };
 
@@ -69,6 +93,11 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
     !todo.completed &&
     todo.dueDate &&
     new Date(todo.dueDate).getTime() < Date.now();
+
+  const categoryName =
+    typeof todo.categoryId === "object" && todo.categoryId !== null
+      ? todo.categoryId.name
+      : categories.find((c) => c._id === todo.categoryId)?.name;
 
   return (
     <li
@@ -89,38 +118,91 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
       {isEditing ? (
         <div
           className="todo-content"
-          style={{ flexDirection: "row", gap: "8px" }}
+          style={{ flexDirection: "column", gap: "8px" }}
         >
-          <input
-            type="text"
-            className="edit-input"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isSubmitting}
-            maxLength={50}
-            autoFocus
-          />
-          <input
-            type="datetime-local"
-            className="edit-input"
-            style={{ width: "auto" }}
-            value={editDueDate}
-            onChange={(e) => setEditDueDate(e.target.value)}
-            disabled={isSubmitting}
-          />
-          <select
-            className="edit-input"
-            style={{ width: "auto" }}
-            value={editPriority}
-            onChange={(e) => setEditPriority(e.target.value)}
-            disabled={isSubmitting}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <input
+              type="text"
+              className="edit-input"
+              style={{ flex: 1, minWidth: "160px" }}
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSubmitting}
+              maxLength={50}
+              autoFocus
+            />
+            <input
+              type="datetime-local"
+              className="edit-input"
+              style={{ width: "auto" }}
+              value={editDueDate}
+              onChange={(e) => setEditDueDate(e.target.value)}
+              disabled={isSubmitting}
+            />
+            <select
+              className="edit-input"
+              style={{ width: "auto" }}
+              value={editPriority}
+              onChange={(e) => setEditPriority(e.target.value)}
+              disabled={isSubmitting}
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+            <select
+              className="edit-input"
+              style={{ width: "auto" }}
+              value={editCategoryId}
+              onChange={(e) => setEditCategoryId(e.target.value)}
+              disabled={isSubmitting}
+            >
+              <option value="">No Category</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {tags.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+              {tags.map((t) => {
+                const isSelected = editSelectedTags.includes(t._id);
+                return (
+                  <button
+                    key={t._id}
+                    type="button"
+                    onClick={() => toggleEditTag(t._id)}
+                    style={{
+                      padding: "2px 6px",
+                      fontSize: "0.7rem",
+                      borderRadius: "10px",
+                      border: isSelected
+                        ? "1px solid var(--accent, #6366f1)"
+                        : "1px solid var(--border)",
+                      backgroundColor: isSelected
+                        ? "rgba(99, 102, 241, 0.15)"
+                        : "transparent",
+                      color: isSelected
+                        ? "var(--accent, #6366f1)"
+                        : "var(--text-secondary)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    #{t.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div
+            className="todo-actions"
+            style={{ opacity: 1, marginTop: "4px" }}
           >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-          <div className="todo-actions" style={{ opacity: 1 }}>
             <button
               className="btn-primary"
               onClick={handleUpdate}
@@ -135,6 +217,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
                 setEditTitle(todo.title);
                 setEditDueDate(toDatetimeLocal(todo.dueDate));
                 setEditPriority(todo.priority || "Medium");
+                setEditCategoryId(initialCategoryId);
+                setEditSelectedTags(initialTags);
               }}
               disabled={isSubmitting}
             >
@@ -144,12 +228,19 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
         </div>
       ) : (
         <div className="todo-content">
-          <span className="todo-title">
-            {todo.title}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "6px",
+            }}
+          >
+            <span className="todo-title">{todo.title}</span>
+
             {todo.priority && (
               <span
                 style={{
-                  marginLeft: "8px",
                   fontSize: "0.7rem",
                   padding: "2px 6px",
                   borderRadius: "12px",
@@ -168,7 +259,49 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
                 {todo.priority}
               </span>
             )}
-          </span>
+
+            {categoryName && (
+              <span
+                style={{
+                  fontSize: "0.7rem",
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(99, 102, 241, 0.12)",
+                  color: "#6366f1",
+                  border: "1px solid rgba(99, 102, 241, 0.25)",
+                }}
+              >
+                📁 {categoryName}
+              </span>
+            )}
+
+            {Array.isArray(todo.tags) &&
+              todo.tags.map((t) => {
+                const tagName =
+                  typeof t === "object" && t !== null
+                    ? t.name
+                    : tags.find((item) => item._id === t)?.name;
+                const tagId = typeof t === "object" && t !== null ? t._id : t;
+                if (!tagName) return null;
+                return (
+                  <span
+                    key={tagId}
+                    style={{
+                      fontSize: "0.7rem",
+                      padding: "2px 6px",
+                      borderRadius: "10px",
+                      backgroundColor: "rgba(20, 184, 166, 0.12)",
+                      color: "#0d9488",
+                      border: "1px solid rgba(20, 184, 166, 0.25)",
+                    }}
+                  >
+                    #{tagName}
+                  </span>
+                );
+              })}
+          </div>
+
           {todo.dueDate && (
             <span
               style={{

@@ -1,10 +1,25 @@
 import React, { useState } from "react";
 
-export function TodoForm({ onSubmit, isSubmitting }) {
+export function TodoForm({
+  onSubmit,
+  isSubmitting,
+  categories = [],
+  tags = [],
+}) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const [categoryId, setCategoryId] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
   const [error, setError] = useState("");
+
+  const toggleTag = (tagId) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,11 +46,20 @@ export function TodoForm({ onSubmit, isSubmitting }) {
     setError("");
     const isoDueDate = dueDate ? new Date(dueDate).toISOString() : null;
 
-    onSubmit(trimmedTitle, isoDueDate, priority, () => {
-      setTitle("");
-      setDueDate("");
-      setPriority("Medium");
-    });
+    onSubmit(
+      trimmedTitle,
+      isoDueDate,
+      priority,
+      categoryId || null,
+      selectedTags,
+      () => {
+        setTitle("");
+        setDueDate("");
+        setPriority("Medium");
+        setCategoryId("");
+        setSelectedTags([]);
+      }
+    );
   };
 
   return (
@@ -85,6 +109,29 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           <option value="Medium">Medium</option>
           <option value="High">High</option>
         </select>
+        <select
+          className="pill-input"
+          style={{
+            flex: "0 0 auto",
+            width: "auto",
+            maxWidth: "140px",
+            borderLeft: "1px solid var(--border)",
+            borderRadius: 0,
+            appearance: "auto",
+            cursor: "pointer",
+          }}
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          disabled={isSubmitting}
+          aria-label="Category"
+        >
+          <option value="">No Category</option>
+          {categories.map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="pill-submit"
@@ -122,6 +169,53 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           )}
         </button>
       </div>
+
+      {tags.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "6px",
+            marginTop: "8px",
+            marginBottom: "16px",
+            paddingLeft: "12px",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+            Tags:
+          </span>
+          {tags.map((t) => {
+            const isSelected = selectedTags.includes(t._id);
+            return (
+              <button
+                key={t._id}
+                type="button"
+                onClick={() => toggleTag(t._id)}
+                style={{
+                  padding: "2px 8px",
+                  fontSize: "0.75rem",
+                  borderRadius: "12px",
+                  border: isSelected
+                    ? "1px solid var(--accent, #6366f1)"
+                    : "1px solid var(--border)",
+                  backgroundColor: isSelected
+                    ? "rgba(99, 102, 241, 0.15)"
+                    : "transparent",
+                  color: isSelected
+                    ? "var(--accent, #6366f1)"
+                    : "var(--text-secondary)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                #{t.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {error && (
         <p
           style={{
