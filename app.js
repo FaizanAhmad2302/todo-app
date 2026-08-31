@@ -60,8 +60,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Swagger UI — conditionally mounted based on environment variable
-if (process.env.SWAGGER_ENABLED === "true") {
+// Swagger UI — conditionally mounted based on environment variable (or in test environment)
+if (process.env.SWAGGER_ENABLED === "true" || process.env.NODE_ENV === "test") {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
