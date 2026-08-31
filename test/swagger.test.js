@@ -1,4 +1,5 @@
 require("dotenv").config();
+process.env.SWAGGER_ENABLED = "true";
 const { test, before, after, describe } = require("node:test");
 const assert = require("node:assert");
 
