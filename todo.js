@@ -1,5 +1,8 @@
+const mongoose = require("mongoose");
 const TodoRepository = require("./repositories/TodoRepository");
-const { MAX_TITLE_LENGTH } = require("./constants");
+const Category = require("./models/Category");
+const Tag = require("./models/Tag");
+const { MAX_TITLE_LENGTH, MAX_TAGS_PER_TODO } = require("./constants");
 const { ValidationError } = require("./errors");
 
 const repository = new TodoRepository();
@@ -54,9 +57,70 @@ function validatePriority(priority) {
   return priority;
 }
 
-async function addTodo(userId, title, dueDate, priority) {
+async function validateCategoryAssignment(userId, categoryId) {
+  if (categoryId === undefined) return undefined;
+  if (categoryId === null || categoryId === "") return null;
+
+  if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+    throw new ValidationError("Invalid category ID");
+  }
+
+  const category = await Category.findOne({ _id: categoryId, userId });
+  if (!category) {
+    throw new ValidationError(
+      "Category not found or does not belong to the user"
+    );
+  }
+
+  return category._id;
+}
+
+async function validateTagsAssignment(userId, tags) {
+  if (tags === undefined) return undefined;
+  if (tags === null) return [];
+
+  if (!Array.isArray(tags)) {
+    throw new ValidationError("Tags must be an array of tag IDs");
+  }
+
+  if (tags.length === 0) return [];
+
+  // Deduplicate tag IDs
+  const stringIds = tags.map((t) =>
+    typeof t === "object" && t._id ? String(t._id) : String(t)
+  );
+  const uniqueIds = [...new Set(stringIds)];
+
+  if (uniqueIds.length > MAX_TAGS_PER_TODO) {
+    throw new ValidationError(
+      `Cannot assign more than ${MAX_TAGS_PER_TODO} tags to a task`
+    );
+  }
+
+  for (const tagId of uniqueIds) {
+    if (!mongoose.Types.ObjectId.isValid(tagId)) {
+      throw new ValidationError(`Invalid tag ID: ${tagId}`);
+    }
+  }
+
+  const foundTags = await Tag.find({ _id: { $in: uniqueIds }, userId });
+  if (foundTags.length !== uniqueIds.length) {
+    throw new ValidationError(
+      "One or more tags not found or do not belong to the user"
+    );
+  }
+
+  return foundTags.map((t) => t._id);
+}
+
+async function addTodo(userId, title, dueDate, priority, categoryId, tags) {
   title = validateTitle(title);
   const validatedDueDate = validateDueDate(dueDate, true);
+  const validatedCategory = await validateCategoryAssignment(
+    userId,
+    categoryId
+  );
+  const validatedTags = await validateTagsAssignment(userId, tags);
 
   const todoNumber = await repository.getNextNumber();
 
@@ -71,13 +135,21 @@ async function addTodo(userId, title, dueDate, priority) {
   }
   data.priority = validatePriority(priority);
 
+  if (validatedCategory !== undefined) {
+    data.categoryId = validatedCategory;
+  }
+
+  if (validatedTags !== undefined) {
+    data.tags = validatedTags;
+  }
+
   const todo = await repository.create(data);
 
   return todo.todoNumber;
 }
 
-async function getTodos(userId, sortBy, priority) {
-  return await repository.findAll(userId, sortBy, priority);
+async function getTodos(userId, sortBy, priority, categoryId, tagId) {
+  return await repository.findAll(userId, sortBy, priority, categoryId, tagId);
 }
 
 async function getTodo(userId, todoNumber) {
@@ -116,7 +188,7 @@ async function renameTodo(userId, todoNumber, title) {
 async function updateTodo(
   userId,
   todoNumber,
-  { title, completed, dueDate, priority }
+  { title, completed, dueDate, priority, categoryId, tags }
 ) {
   validateTodoNumber(todoNumber);
   const update = {};
@@ -126,10 +198,23 @@ async function updateTodo(
   if (dueDate !== undefined) {
     const validatedDueDate = validateDueDate(dueDate, false);
     if (validatedDueDate === null) {
-      update.$unset = { dueDate: 1 };
+      update.$unset = { ...update.$unset, dueDate: 1 };
     } else {
       update.dueDate = validatedDueDate;
     }
+  }
+
+  if (categoryId !== undefined) {
+    const validatedCategory = await validateCategoryAssignment(
+      userId,
+      categoryId
+    );
+    update.categoryId = validatedCategory;
+  }
+
+  if (tags !== undefined) {
+    const validatedTags = await validateTagsAssignment(userId, tags);
+    update.tags = validatedTags;
   }
 
   return await repository.update(userId, todoNumber, update);
@@ -149,12 +234,24 @@ async function deleteAllTodos(userId) {
   return result.deletedCount;
 }
 
-async function getCompletedTodos(userId, sortBy, priority) {
-  return await repository.findCompleted(userId, sortBy, priority);
+async function getCompletedTodos(userId, sortBy, priority, categoryId, tagId) {
+  return await repository.findCompleted(
+    userId,
+    sortBy,
+    priority,
+    categoryId,
+    tagId
+  );
 }
 
-async function getIncompleteTodos(userId, sortBy, priority) {
-  return await repository.findIncomplete(userId, sortBy, priority);
+async function getIncompleteTodos(userId, sortBy, priority, categoryId, tagId) {
+  return await repository.findIncomplete(
+    userId,
+    sortBy,
+    priority,
+    categoryId,
+    tagId
+  );
 }
 
 async function deleteCompletedTodos(userId) {
@@ -170,8 +267,8 @@ async function deleteIncompleteTodos(userId) {
 }
 
 // Admin Methods
-async function getAllTodosAdmin(sortBy, priority) {
-  return await repository.findAllAdmin(sortBy, priority);
+async function getAllTodosAdmin(sortBy, priority, categoryId, tagId) {
+  return await repository.findAllAdmin(sortBy, priority, categoryId, tagId);
 }
 
 module.exports = {
@@ -190,4 +287,6 @@ module.exports = {
   getAllTodosAdmin,
   validateDueDate,
   validatePriority,
+  validateCategoryAssignment,
+  validateTagsAssignment,
 };

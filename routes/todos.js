@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { authenticate } = require("../middleware/auth");
 const {
   addTodo,
@@ -95,6 +96,8 @@ router.get("/", async (req, res) => {
   const priority = parsePriority(req.query.priority);
   const userId = req.user.id;
   const sort = req.query.sort;
+  const category = req.query.category;
+  const tag = req.query.tag;
 
   if (completed === null) {
     return res
@@ -108,17 +111,37 @@ router.get("/", async (req, res) => {
       .json({ error: 'priority must be "Low", "Medium", or "High"' });
   }
 
+  if (category && !mongoose.Types.ObjectId.isValid(category)) {
+    return res.status(400).json({ error: "Invalid category ID" });
+  }
+
+  if (tag && !mongoose.Types.ObjectId.isValid(tag)) {
+    return res.status(400).json({ error: "Invalid tag ID" });
+  }
+
   if (completed === true) {
-    const todos = await getCompletedTodos(userId, sort, priority);
+    const todos = await getCompletedTodos(
+      userId,
+      sort,
+      priority,
+      category,
+      tag
+    );
     return res.status(200).json(todos);
   }
 
   if (completed === false) {
-    const todos = await getIncompleteTodos(userId, sort, priority);
+    const todos = await getIncompleteTodos(
+      userId,
+      sort,
+      priority,
+      category,
+      tag
+    );
     return res.status(200).json(todos);
   }
 
-  const todos = await getTodos(userId, sort, priority);
+  const todos = await getTodos(userId, sort, priority, category, tag);
   return res.status(200).json(todos);
 });
 
@@ -206,7 +229,7 @@ router.get("/:id", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Todo'
  *       400:
- *         description: Validation error (missing title, empty string, title too long, or non-string type)
+ *         description: Validation error (missing title, empty string, title too long, or invalid category/tag)
  *         content:
  *           application/json:
  *             schema:
@@ -225,15 +248,23 @@ router.get("/:id", async (req, res) => {
  *               $ref: '#/components/schemas/Error'
  */
 router.post("/", async (req, res) => {
-  const { title, dueDate, priority } = req.body;
+  const { title, dueDate, priority, categoryId, tags } = req.body || {};
   const userId = req.user.id;
 
   try {
-    const todoNumber = await addTodo(userId, title, dueDate, priority);
+    const todoNumber = await addTodo(
+      userId,
+      title,
+      dueDate,
+      priority,
+      categoryId,
+      tags
+    );
     const todo = await getTodo(userId, todoNumber);
     return res.status(201).json(todo);
   } catch (error) {
-    return res.status(400).json({ error: error.message });
+    const status = error.name === "ValidationError" ? 400 : 500;
+    return res.status(status).json({ error: error.message });
   }
 });
 
@@ -242,10 +273,10 @@ router.post("/", async (req, res) => {
  * @swagger
  * /todos/{id}:
  *   patch:
- *     summary: Update a todo's title and/or completion status
+ *     summary: Update a todo's title, completion status, due date, priority, category, and/or tags
  *     description: |
- *       Updates the title and/or completed status of a todo. At least one field must be provided.
- *       Unknown fields in the request body are rejected with a 400 error.
+ *       Updates the title, completed status, due date, priority, categoryId, and/or tags of a todo.
+ *       At least one field must be provided. Unknown fields in the request body are rejected with a 400 error.
  *       The todo must belong to the authenticated user.
  *     tags: [Todos]
  *     security:
@@ -272,7 +303,7 @@ router.post("/", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Todo'
  *       400:
- *         description: No fields provided, unknown fields, invalid completed type, or title validation error
+ *         description: No fields provided, unknown fields, invalid completed type, or validation error
  *         content:
  *           application/json:
  *             schema:
@@ -304,9 +335,17 @@ router.patch("/:id", async (req, res) => {
     return res.status(400).json({ error: "Invalid todo ID" });
   }
 
-  const { title, completed, dueDate, priority } = req.body;
+  const { title, completed, dueDate, priority, categoryId, tags } =
+    req.body || {};
 
-  const allowedFields = ["title", "completed", "dueDate", "priority"];
+  const allowedFields = [
+    "title",
+    "completed",
+    "dueDate",
+    "priority",
+    "categoryId",
+    "tags",
+  ];
   const unknownFields = Object.keys(req.body).filter(
     (key) => !allowedFields.includes(key)
   );
@@ -321,11 +360,13 @@ router.patch("/:id", async (req, res) => {
     title === undefined &&
     completed === undefined &&
     dueDate === undefined &&
-    priority === undefined
+    priority === undefined &&
+    categoryId === undefined &&
+    tags === undefined
   ) {
     return res.status(400).json({
       error:
-        "At least one field (title, completed, dueDate, or priority) is required",
+        "At least one field (title, completed, dueDate, priority, categoryId, or tags) is required",
     });
   }
 
@@ -333,18 +374,25 @@ router.patch("/:id", async (req, res) => {
     return res.status(400).json({ error: "Completed must be a boolean" });
   }
 
-  const updatedTodo = await updateTodo(userId, todoNumber, {
-    title,
-    completed,
-    dueDate,
-    priority,
-  });
+  try {
+    const updatedTodo = await updateTodo(userId, todoNumber, {
+      title,
+      completed,
+      dueDate,
+      priority,
+      categoryId,
+      tags,
+    });
 
-  if (!updatedTodo) {
-    return res.status(404).json({ error: `Todo ${todoNumber} not found` });
+    if (!updatedTodo) {
+      return res.status(404).json({ error: `Todo ${todoNumber} not found` });
+    }
+
+    res.status(200).json(updatedTodo);
+  } catch (error) {
+    const status = error.name === "ValidationError" ? 400 : 500;
+    return res.status(status).json({ error: error.message });
   }
-
-  res.status(200).json(updatedTodo);
 });
 
 // DELETE /todos/:id

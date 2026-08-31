@@ -95,12 +95,14 @@ export async function apiFetch(endpoint, options = {}, retries = 1) {
 }
 
 // Todo specific exports
-export const getTodos = async (completed, sort, priority) => {
+export const getTodos = async (completed, sort, priority, category, tag) => {
   let url = "/todos";
   const params = [];
   if (completed !== undefined) params.push(`completed=${completed}`);
   if (sort) params.push(`sort=${sort}`);
   if (priority && priority !== "all") params.push(`priority=${priority}`);
+  if (category && category !== "all") params.push(`category=${category}`);
+  if (tag && tag !== "all") params.push(`tag=${tag}`);
 
   if (params.length > 0) {
     url += `?${params.join("&")}`;
@@ -112,10 +114,18 @@ export const getTodo = async (id) => {
   return apiFetch(`/todos/${id}`);
 };
 
-export const createTodo = async (title, dueDate, priority) => {
+export const createTodo = async (
+  title,
+  dueDate,
+  priority,
+  categoryId,
+  tags
+) => {
   const body = { title };
   if (dueDate) body.dueDate = dueDate;
   if (priority) body.priority = priority;
+  if (categoryId) body.categoryId = categoryId;
+  if (tags && tags.length > 0) body.tags = tags;
   return apiFetch("/todos", {
     method: "POST",
     body: JSON.stringify(body),
@@ -147,6 +157,56 @@ export const deleteIncompleteTodos = async () => {
   });
 };
 
+// Categories specific exports
+export const getCategories = async () => {
+  return apiFetch("/categories");
+};
+
+export const createCategory = async (name) => {
+  return apiFetch("/categories", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+};
+
+export const updateCategory = async (id, name) => {
+  return apiFetch(`/categories/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+};
+
+export const deleteCategory = async (id) => {
+  return apiFetch(`/categories/${id}`, {
+    method: "DELETE",
+  });
+};
+
+// Tags specific exports
+export const getTags = async () => {
+  return apiFetch("/tags");
+};
+
+export const createTag = async (name) => {
+  return apiFetch("/tags", {
+    method: "POST",
+    body: JSON.stringify({ name }),
+  });
+};
+
+export const updateTag = async (id, name) => {
+  return apiFetch(`/tags/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+};
+
+export const deleteTag = async (id) => {
+  return apiFetch(`/tags/${id}`, {
+    method: "DELETE",
+  });
+};
+
 // Admin specific exports
 export const getAdminUsers = async () => {
   return apiFetch("/admin/users");
@@ -159,8 +219,18 @@ export const toggleAdminUser = async (id, isActive) => {
   });
 };
 
-export const getAdminTodos = async () => {
-  return apiFetch("/admin/todos");
+export const getAdminTodos = async (sort, priority, category, tag) => {
+  let url = "/admin/todos";
+  const params = [];
+  if (sort) params.push(`sort=${sort}`);
+  if (priority && priority !== "all") params.push(`priority=${priority}`);
+  if (category && category !== "all") params.push(`category=${category}`);
+  if (tag && tag !== "all") params.push(`tag=${tag}`);
+
+  if (params.length > 0) {
+    url += `?${params.join("&")}`;
+  }
+  return apiFetch(url);
 };
 
 export const adminUpdateTodo = async (id, updates) => {

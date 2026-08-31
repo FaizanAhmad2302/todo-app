@@ -1,10 +1,25 @@
 import React, { useState } from "react";
 
-export function TodoForm({ onSubmit, isSubmitting }) {
+export function TodoForm({
+  onSubmit,
+  isSubmitting,
+  categories = [],
+  tags = [],
+}) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const [categoryId, setCategoryId] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
   const [error, setError] = useState("");
+
+  const toggleTag = (tagId) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,15 +46,24 @@ export function TodoForm({ onSubmit, isSubmitting }) {
     setError("");
     const isoDueDate = dueDate ? new Date(dueDate).toISOString() : null;
 
-    onSubmit(trimmedTitle, isoDueDate, priority, () => {
-      setTitle("");
-      setDueDate("");
-      setPriority("Medium");
-    });
+    onSubmit(
+      trimmedTitle,
+      isoDueDate,
+      priority,
+      categoryId || null,
+      selectedTags,
+      () => {
+        setTitle("");
+        setDueDate("");
+        setPriority("Medium");
+        setCategoryId("");
+        setSelectedTags([]);
+      }
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ position: "relative" }}>
+    <form onSubmit={handleSubmit} className="todo-form">
       <div className="pill-input-container">
         <input
           type="text"
@@ -52,39 +76,6 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           aria-label="New todo title"
           autoFocus
         />
-        <input
-          type="datetime-local"
-          className="pill-input"
-          style={{
-            flex: "0 0 auto",
-            width: "auto",
-            borderLeft: "1px solid var(--border)",
-            borderRadius: 0,
-          }}
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          disabled={isSubmitting}
-          aria-label="Due date"
-        />
-        <select
-          className="pill-input"
-          style={{
-            flex: "0 0 auto",
-            width: "auto",
-            borderLeft: "1px solid var(--border)",
-            borderRadius: 0,
-            appearance: "auto",
-            cursor: "pointer",
-          }}
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          disabled={isSubmitting}
-          aria-label="Priority"
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
         <button
           type="submit"
           className="pill-submit"
@@ -122,19 +113,74 @@ export function TodoForm({ onSubmit, isSubmitting }) {
           )}
         </button>
       </div>
-      {error && (
-        <p
-          style={{
-            color: "var(--accent)",
-            marginTop: "-16px",
-            marginBottom: "24px",
-            fontSize: "0.8rem",
-            paddingLeft: "16px",
-          }}
-        >
-          {error}
-        </p>
+
+      <div className="todo-form-options">
+        <div className="todo-form-chip" title="Set due date and time">
+          <span className="chip-icon">📅</span>
+          <input
+            type="datetime-local"
+            className="chip-input"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Due date"
+          />
+        </div>
+
+        <div className="todo-form-chip" title="Set priority">
+          <span className="chip-icon">🎯</span>
+          <select
+            className="chip-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Priority"
+          >
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
+          </select>
+        </div>
+
+        <div className="todo-form-chip" title="Assign category">
+          <span className="chip-icon">📁</span>
+          <select
+            className="chip-select"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            disabled={isSubmitting}
+            aria-label="Category"
+          >
+            <option value="">No Category</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {tags.length > 0 && (
+        <div className="todo-form-tags">
+          <span className="tags-label">Tags:</span>
+          {tags.map((t) => {
+            const isSelected = selectedTags.includes(t._id);
+            return (
+              <button
+                key={t._id}
+                type="button"
+                className={`tag-chip ${isSelected ? "selected" : ""}`}
+                onClick={() => toggleTag(t._id)}
+              >
+                #{t.name}
+              </button>
+            );
+          })}
+        </div>
       )}
+
+      {error && <p className="todo-form-error">{error}</p>}
     </form>
   );
 }

@@ -33,6 +33,22 @@ const todoSchema = new mongoose.Schema(
       required: false,
     },
 
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: false,
+      default: null,
+      index: true,
+    },
+
+    tags: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tag",
+        index: true,
+      },
+    ],
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

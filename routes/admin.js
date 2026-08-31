@@ -8,6 +8,8 @@ const {
   getAllTodosAdmin,
   validateDueDate,
   validatePriority,
+  validateCategoryAssignment,
+  validateTagsAssignment,
 } = require("../todo");
 
 const router = express.Router();
@@ -229,6 +231,8 @@ router.get("/todos", async (req, res) => {
   try {
     const sort = req.query.sort;
     const priority = parsePriority(req.query.priority);
+    const category = req.query.category;
+    const tag = req.query.tag;
 
     if (priority === null) {
       return res
@@ -236,7 +240,15 @@ router.get("/todos", async (req, res) => {
         .json({ error: 'priority must be "Low", "Medium", or "High"' });
     }
 
-    const todos = await getAllTodosAdmin(sort, priority);
+    if (category && !mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({ error: "Invalid category ID" });
+    }
+
+    if (tag && !mongoose.Types.ObjectId.isValid(tag)) {
+      return res.status(400).json({ error: "Invalid tag ID" });
+    }
+
+    const todos = await getAllTodosAdmin(sort, priority, category, tag);
     res.status(200).json(todos);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch all todos" });
@@ -247,10 +259,10 @@ router.get("/todos", async (req, res) => {
  * @swagger
  * /admin/todos/{id}:
  *   patch:
- *     summary: Edit any todo's title or completion status (Admin-only)
+ *     summary: Edit any todo's title, completion status, due date, priority, category, or tags (Admin-only)
  *     description: |
- *       Allows an admin to edit the title and/or completed status of any todo.
- *       The todo's ownership (userId) cannot be changed — the endpoint only accepts title and completed fields.
+ *       Allows an admin to edit any todo.
+ *       The todo's ownership (userId) cannot be changed, and assigned categories/tags must belong to that todo's owner.
  *
  *       **Admin-only.** Normal authenticated users receive 403 Forbidden.
  *     tags: [Admin]
@@ -316,54 +328,84 @@ router.get("/todos", async (req, res) => {
  */
 router.patch("/todos/:id", async (req, res) => {
   try {
-    const { title, completed, dueDate } = req.body;
+    const todoId = parseInt(req.params.id, 10);
+    if (isNaN(todoId)) {
+      return res.status(400).json({ error: "Invalid Todo ID" });
+    }
+
+    const existingTodo = await Todo.findOne({ todoNumber: todoId });
+    if (!existingTodo) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+
+    const { title, completed, dueDate, priority, categoryId, tags } = req.body;
     const updateData = {};
+
     if (title !== undefined) {
       if (typeof title !== "string" || !title.trim()) {
         return res.status(400).json({ error: "Title is required" });
       }
       updateData.title = title.trim();
     }
+
     if (completed !== undefined) {
       if (typeof completed !== "boolean") {
         return res.status(400).json({ error: "completed must be a boolean" });
       }
       updateData.completed = completed;
     }
+
     if (dueDate !== undefined) {
       const validatedDueDate = validateDueDate(dueDate, false);
       if (validatedDueDate === null) {
-        updateData.$unset = { dueDate: 1 };
+        updateData.dueDate = null;
       } else {
         updateData.dueDate = validatedDueDate;
       }
     }
-    if (req.body.priority !== undefined) {
+
+    if (priority !== undefined) {
       try {
-        updateData.priority = validatePriority(req.body.priority);
+        updateData.priority = validatePriority(priority);
       } catch (e) {
         return res.status(400).json({ error: e.message });
       }
     }
 
-    if (Object.keys(updateData).length === 0 && !updateData.$unset) {
-      return res.status(400).json({ error: "No valid fields provided" });
+    if (categoryId !== undefined) {
+      try {
+        updateData.categoryId = await validateCategoryAssignment(
+          existingTodo.userId,
+          categoryId
+        );
+      } catch (e) {
+        return res.status(400).json({ error: e.message });
+      }
     }
 
-    const todoId = parseInt(req.params.id, 10);
-    if (isNaN(todoId)) {
-      return res.status(400).json({ error: "Invalid Todo ID" });
+    if (tags !== undefined) {
+      try {
+        updateData.tags = await validateTagsAssignment(
+          existingTodo.userId,
+          tags
+        );
+      } catch (e) {
+        return res.status(400).json({ error: e.message });
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid fields provided" });
     }
 
     const todo = await Todo.findOneAndUpdate(
       { todoNumber: todoId },
       updateData,
-      { new: true, runValidators: true }
-    );
+      { returnDocument: "after", runValidators: true }
+    )
+      .populate("categoryId", "name")
+      .populate("tags", "name");
 
-    if (!todo) {
-      return res.status(404).json({ error: "Todo not found" });
-    }
     res.status(200).json(todo);
   } catch (err) {
     res.status(500).json({ error: "Failed to update todo" });

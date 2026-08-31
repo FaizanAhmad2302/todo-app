@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admin");
 const profileRouter = require("./routes/profile");
+const categoriesRouter = require("./routes/categories");
+const tagsRouter = require("./routes/tags");
 
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
@@ -68,6 +70,8 @@ if (process.env.SWAGGER_ENABLED === "true" || process.env.NODE_ENV === "test") {
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/profile", profileRouter);
+app.use("/categories", categoriesRouter);
+app.use("/tags", tagsRouter);
 app.use("/todos", todoRouter);
 
 app.use((req, res) => {

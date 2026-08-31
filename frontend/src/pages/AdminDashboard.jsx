@@ -405,6 +405,8 @@ export default function AdminDashboard() {
               <th>Title</th>
               <th>Owner Name</th>
               <th>Owner Email</th>
+              <th>Category</th>
+              <th>Tags</th>
               <th>Priority</th>
               <th>Due Date</th>
               <th>Status</th>
@@ -416,7 +418,7 @@ export default function AdminDashboard() {
           <tbody>
             {todos.length === 0 ? (
               <tr>
-                <td colSpan="9" className="text-center empty-state">
+                <td colSpan="11" className="text-center empty-state">
                   No todos found.
                 </td>
               </tr>
@@ -431,11 +433,71 @@ export default function AdminDashboard() {
                   todo.dueDate &&
                   new Date(todo.dueDate).getTime() < Date.now();
 
+                const categoryName =
+                  typeof todo.categoryId === "object" &&
+                  todo.categoryId !== null
+                    ? todo.categoryId.name
+                    : null;
+
+                const tagNames = Array.isArray(todo.tags)
+                  ? todo.tags
+                      .map((t) =>
+                        typeof t === "object" && t !== null ? t.name : null
+                      )
+                      .filter(Boolean)
+                  : [];
+
                 return (
                   <tr key={todo._id} className={isOverdue ? "row-overdue" : ""}>
                     <td className="fw-500">{todo.title}</td>
                     <td>{owner.name}</td>
                     <td className="text-gray text-sm">{owner.email}</td>
+                    <td className="text-sm">
+                      {categoryName ? (
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            padding: "2px 6px",
+                            borderRadius: "10px",
+                            backgroundColor: "rgba(99, 102, 241, 0.12)",
+                            color: "#6366f1",
+                          }}
+                        >
+                          📁 {categoryName}
+                        </span>
+                      ) : (
+                        <span className="text-gray">-</span>
+                      )}
+                    </td>
+                    <td className="text-sm">
+                      {tagNames.length > 0 ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "4px",
+                          }}
+                        >
+                          {tagNames.map((name, idx) => (
+                            <span
+                              key={idx}
+                              style={{
+                                fontSize: "0.7rem",
+                                padding: "1px 5px",
+                                borderRadius: "8px",
+                                backgroundColor: "rgba(20, 184, 166, 0.12)",
+                                color: "#0d9488",
+                              }}
+                            >
+                              #{name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray">-</span>
+                      )}
+                    </td>
                     <td>
                       <span
                         style={{
