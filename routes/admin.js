@@ -11,6 +11,10 @@ const {
   validateCategoryAssignment,
   validateTagsAssignment,
 } = require("../todo");
+const {
+  recordActivity,
+  getTodoHistory,
+} = require("../services/TodoActivityService");
 
 const router = express.Router();
 
@@ -329,44 +333,96 @@ router.get("/todos", async (req, res) => {
 router.patch("/todos/:id", async (req, res) => {
   try {
     const todoId = parseInt(req.params.id, 10);
+
     if (isNaN(todoId)) {
       return res.status(400).json({ error: "Invalid Todo ID" });
     }
 
     const existingTodo = await Todo.findOne({ todoNumber: todoId });
+
     if (!existingTodo) {
       return res.status(404).json({ error: "Todo not found" });
     }
 
     const { title, completed, dueDate, priority, categoryId, tags } = req.body;
+
     const updateData = {};
+    const changes = {};
 
     if (title !== undefined) {
       if (typeof title !== "string" || !title.trim()) {
         return res.status(400).json({ error: "Title is required" });
       }
-      updateData.title = title.trim();
+
+      const newTitle = title.trim();
+      updateData.title = newTitle;
+
+      if (existingTodo.title !== newTitle) {
+        changes.title = {
+          from: existingTodo.title,
+          to: newTitle,
+        };
+      }
     }
 
     if (completed !== undefined) {
       if (typeof completed !== "boolean") {
-        return res.status(400).json({ error: "completed must be a boolean" });
+        return res.status(400).json({
+          error: "completed must be a boolean",
+        });
       }
+
       updateData.completed = completed;
+
+      if (existingTodo.completed !== completed) {
+        changes.completed = {
+          from: existingTodo.completed,
+          to: completed,
+        };
+      }
     }
 
     if (dueDate !== undefined) {
       const validatedDueDate = validateDueDate(dueDate, false);
+
       if (validatedDueDate === null) {
         updateData.dueDate = null;
+
+        if (existingTodo.dueDate) {
+          changes.dueDate = {
+            from: existingTodo.dueDate,
+            to: null,
+          };
+        }
       } else {
         updateData.dueDate = validatedDueDate;
+
+        const oldDueDate = existingTodo.dueDate
+          ? new Date(existingTodo.dueDate).getTime()
+          : null;
+
+        const newDueDate = validatedDueDate.getTime();
+
+        if (oldDueDate !== newDueDate) {
+          changes.dueDate = {
+            from: existingTodo.dueDate || null,
+            to: validatedDueDate,
+          };
+        }
       }
     }
 
     if (priority !== undefined) {
       try {
-        updateData.priority = validatePriority(priority);
+        const newPriority = validatePriority(priority);
+        updateData.priority = newPriority;
+
+        if (existingTodo.priority !== newPriority) {
+          changes.priority = {
+            from: existingTodo.priority,
+            to: newPriority,
+          };
+        }
       } catch (e) {
         return res.status(400).json({ error: e.message });
       }
@@ -374,10 +430,27 @@ router.patch("/todos/:id", async (req, res) => {
 
     if (categoryId !== undefined) {
       try {
-        updateData.categoryId = await validateCategoryAssignment(
+        const validatedCategory = await validateCategoryAssignment(
           existingTodo.userId,
           categoryId
         );
+
+        updateData.categoryId = validatedCategory;
+
+        const oldCategoryId = existingTodo.categoryId
+          ? String(existingTodo.categoryId._id || existingTodo.categoryId)
+          : null;
+
+        const newCategoryId = validatedCategory
+          ? String(validatedCategory)
+          : null;
+
+        if (oldCategoryId !== newCategoryId) {
+          changes.categoryId = {
+            from: oldCategoryId,
+            to: newCategoryId,
+          };
+        }
       } catch (e) {
         return res.status(400).json({ error: e.message });
       }
@@ -385,33 +458,79 @@ router.patch("/todos/:id", async (req, res) => {
 
     if (tags !== undefined) {
       try {
-        updateData.tags = await validateTagsAssignment(
+        const validatedTags = await validateTagsAssignment(
           existingTodo.userId,
           tags
         );
+
+        updateData.tags = validatedTags;
+
+        const oldTags = (existingTodo.tags || []).map((tag) =>
+          String(tag._id || tag)
+        );
+
+        const newTags = validatedTags.map((tag) => String(tag));
+
+        const oldTagsSorted = [...oldTags].sort();
+        const newTagsSorted = [...newTags].sort();
+
+        if (JSON.stringify(oldTagsSorted) !== JSON.stringify(newTagsSorted)) {
+          changes.tags = {
+            from: oldTags,
+            to: newTags,
+          };
+        }
       } catch (e) {
         return res.status(400).json({ error: e.message });
       }
     }
 
     if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ error: "No valid fields provided" });
+      return res.status(400).json({
+        error: "No valid fields provided",
+      });
+    }
+
+    if (Object.keys(changes).length === 0) {
+      const todo = await Todo.findOne({ todoNumber: todoId })
+        .populate("categoryId", "name")
+        .populate("tags", "name");
+
+      return res.status(200).json(todo);
     }
 
     const todo = await Todo.findOneAndUpdate(
       { todoNumber: todoId },
       updateData,
-      { returnDocument: "after", runValidators: true }
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
     )
       .populate("categoryId", "name")
       .populate("tags", "name");
 
+    if (!todo) {
+      return res.status(404).json({
+        error: "Todo not found",
+      });
+    }
+
+    await recordActivity({
+      userId: existingTodo.userId,
+      todoNumber: existingTodo.todoNumber,
+      action: "UPDATED",
+      changes,
+      performedBy: req.user.id,
+    });
+
     res.status(200).json(todo);
   } catch (err) {
-    res.status(500).json({ error: "Failed to update todo" });
+    res.status(500).json({
+      error: "Failed to update todo",
+    });
   }
 });
-
 /**
  * @swagger
  * /admin/todos/{id}:
@@ -475,18 +594,55 @@ router.patch("/todos/:id", async (req, res) => {
 router.delete("/todos/:id", async (req, res) => {
   try {
     const todoId = parseInt(req.params.id, 10);
+
     if (isNaN(todoId)) {
       return res.status(400).json({ error: "Invalid Todo ID" });
     }
 
+    const todo = await Todo.findOne({ todoNumber: todoId });
+
+    if (!todo) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+
     const result = await Todo.findOneAndDelete({ todoNumber: todoId });
+
     if (!result) {
       return res.status(404).json({ error: "Todo not found" });
     }
 
+    await recordActivity({
+      userId: todo.userId,
+      todoNumber: todo.todoNumber,
+      action: "DELETED",
+      changes: {
+        title: todo.title,
+        completed: todo.completed,
+        priority: todo.priority,
+        dueDate: todo.dueDate || null,
+        categoryId: todo.categoryId || null,
+        tags: todo.tags || [],
+      },
+      performedBy: req.user.id,
+    });
+
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: "Failed to delete todo" });
+  }
+});
+
+router.get("/todos/:id/history", async (req, res) => {
+  try {
+    const todoNumber = parseInt(req.params.id, 10);
+    if (isNaN(todoNumber) || todoNumber < 1) {
+      return res.status(400).json({ error: "Invalid Todo ID" });
+    }
+
+    const history = await getTodoHistory(null, todoNumber);
+    res.status(200).json(history);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve todo activity history" });
   }
 });
 

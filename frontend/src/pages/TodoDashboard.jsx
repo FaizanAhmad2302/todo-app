@@ -7,6 +7,7 @@ import {
   deleteTodo,
   deleteCompletedTodos,
   deleteIncompleteTodos,
+  deleteAllTodos,
   getCategories,
   createCategory,
   updateCategory,
@@ -21,6 +22,7 @@ import { TodoForm } from "../components/TodoForm";
 import { TodoList } from "../components/TodoList";
 import { Loading } from "../components/Loading";
 import { Toast } from "../components/Toast";
+import { TodoHistoryModal } from "../components/TodoHistoryModal";
 import { Link } from "react-router-dom";
 
 export default function TodoDashboard() {
@@ -34,6 +36,9 @@ export default function TodoDashboard() {
   const [error, setError] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
+
+  const [selectedTodoForHistory, setSelectedTodoForHistory] = useState(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const [filter, setFilter] = useState("all"); // 'all', 'active', 'completed'
   const [priorityFilter, setPriorityFilter] = useState("all"); // 'all', 'Low', 'Medium', 'High'
@@ -172,6 +177,11 @@ export default function TodoDashboard() {
     }
   };
 
+  const handleHistoryTodo = (todo) => {
+    setSelectedTodoForHistory(todo);
+    setIsHistoryOpen(true);
+  };
+
   const handleClearCompleted = async () => {
     if (!window.confirm("Are you sure you want to clear all completed tasks?"))
       return;
@@ -193,6 +203,22 @@ export default function TodoDashboard() {
       await loadTodos();
     } catch (err) {
       showToast(err.message || "Failed to clear active tasks", "error");
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete ALL your tasks? This cannot be undone."
+      )
+    )
+      return;
+    try {
+      await deleteAllTodos();
+      showToast("All tasks deleted");
+      await loadTodos();
+    } catch (err) {
+      showToast(err.message || "Failed to delete all tasks", "error");
     }
   };
 
@@ -609,6 +635,9 @@ export default function TodoDashboard() {
           <button className="nav-link danger-link" onClick={handleClearActive}>
             Clear Active
           </button>
+          <button className="nav-link danger-link" onClick={handleClearAll}>
+            Delete All Tasks
+          </button>
         </div>
 
         <div className="nav-section" style={{ marginTop: "auto" }}>
@@ -681,12 +710,23 @@ export default function TodoDashboard() {
                 onToggle={handleToggleTodo}
                 onUpdate={handleUpdateTodo}
                 onDelete={handleDeleteTodo}
+                onHistory={handleHistoryTodo}
                 emptyMessage={getEmptyMessage()}
               />
             )
           )}
         </div>
       </main>
+
+      {isHistoryOpen && selectedTodoForHistory && (
+        <TodoHistoryModal
+          todo={selectedTodoForHistory}
+          onClose={() => {
+            setIsHistoryOpen(false);
+            setSelectedTodoForHistory(null);
+          }}
+        />
+      )}
 
       <Toast
         message={toast.message}
