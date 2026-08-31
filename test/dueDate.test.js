@@ -229,3 +229,47 @@ test("[API/Security] PATCH /todos/:id prevents modifying another user's dueDate"
   const getBody = await getRes.json();
   assert.strictEqual(getBody.dueDate, futureDate);
 });
+
+test("[API/Admin] PATCH /admin/todos/:id updates dueDate and priority", async () => {
+  await createTestUser("testuser5@example.com", "password", "user");
+  const authCookies = await loginUser(
+    baseUrl,
+    "testuser5@example.com",
+    "password"
+  );
+
+  await createTestUser("admin_due@example.com", "password", "admin");
+  const adminCookies = await loginUser(
+    baseUrl,
+    "admin_due@example.com",
+    "password"
+  );
+
+  const postRes = await fetch(`${baseUrl}/todos`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authCookies,
+      Origin: "http://localhost:5173",
+    },
+    body: JSON.stringify({ title: "User Task" }),
+  });
+  const postBody = await postRes.json();
+  const todoId = postBody.todoNumber;
+
+  const newDueDate = new Date(Date.now() + 500000).toISOString();
+
+  const patchRes = await fetch(`${baseUrl}/admin/todos/${todoId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: adminCookies,
+      Origin: "http://localhost:5173",
+    },
+    body: JSON.stringify({ dueDate: newDueDate, priority: "High" }),
+  });
+  assert.strictEqual(patchRes.status, 200);
+  const patchBody = await patchRes.json();
+  assert.strictEqual(patchBody.priority, "High");
+  assert.strictEqual(patchBody.dueDate, newDueDate);
+});

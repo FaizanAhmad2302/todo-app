@@ -65,8 +65,15 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
     }
   };
 
+  const isOverdue =
+    !todo.completed &&
+    todo.dueDate &&
+    new Date(todo.dueDate).getTime() < Date.now();
+
   return (
-    <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
+    <li
+      className={`todo-item ${todo.completed ? "completed" : ""} ${isOverdue ? "overdue" : ""}`}
+    >
       <div className="todo-checkbox-wrapper">
         <input
           type="checkbox"
@@ -150,8 +157,8 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
                     todo.priority === "High"
                       ? "var(--accent)"
                       : todo.priority === "Medium"
-                      ? "#f59e0b"
-                      : "var(--border)",
+                        ? "#f59e0b"
+                        : "var(--border)",
                   color:
                     todo.priority === "High" || todo.priority === "Medium"
                       ? "white"
@@ -166,11 +173,31 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }) {
             <span
               style={{
                 fontSize: "0.75rem",
-                color: "var(--text-muted)",
+                color: isOverdue ? "#dc2626" : "var(--text-muted)",
                 marginTop: "2px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontWeight: isOverdue ? 600 : 400,
               }}
             >
-              Due: {new Date(todo.dueDate).toLocaleString()}
+              {isOverdue && (
+                <span
+                  style={{
+                    backgroundColor: "#fee2e2",
+                    color: "#dc2626",
+                    padding: "1px 6px",
+                    borderRadius: "6px",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  Overdue
+                </span>
+              )}
+              <span>Due: {new Date(todo.dueDate).toLocaleString()}</span>
             </span>
           )}
         </div>

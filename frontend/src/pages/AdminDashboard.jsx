@@ -11,6 +11,14 @@ import {
 import { Toast } from "../components/Toast";
 import "./AdminDashboard.css";
 
+const toDatetimeLocal = (isoString) => {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function AdminDashboard() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +34,8 @@ export default function AdminDashboard() {
   const [editTodoId, setEditTodoId] = useState(null);
   const [editTodoTitle, setEditTodoTitle] = useState("");
   const [editTodoCompleted, setEditTodoCompleted] = useState(false);
+  const [editTodoDueDate, setEditTodoDueDate] = useState("");
+  const [editTodoPriority, setEditTodoPriority] = useState("Medium");
 
   const [deleteTodoId, setDeleteTodoId] = useState(null);
 
@@ -89,9 +99,15 @@ export default function AdminDashboard() {
 
     setIsSubmitting(true);
     try {
+      const isoDueDate = editTodoDueDate
+        ? new Date(editTodoDueDate).toISOString()
+        : null;
+
       const updated = await adminUpdateTodo(editTodoId, {
         title: editTodoTitle.trim(),
         completed: editTodoCompleted,
+        dueDate: isoDueDate,
+        priority: editTodoPriority,
       });
       setTodos(todos.map((t) => (t.todoNumber === editTodoId ? updated : t)));
       setEditTodoId(null);
@@ -410,8 +426,13 @@ export default function AdminDashboard() {
                   name: "Unknown User",
                   email: "N/A",
                 };
+                const isOverdue =
+                  !todo.completed &&
+                  todo.dueDate &&
+                  new Date(todo.dueDate).getTime() < Date.now();
+
                 return (
-                  <tr key={todo._id}>
+                  <tr key={todo._id} className={isOverdue ? "row-overdue" : ""}>
                     <td className="fw-500">{todo.title}</td>
                     <td>{owner.name}</td>
                     <td className="text-gray text-sm">{owner.email}</td>
@@ -425,10 +446,11 @@ export default function AdminDashboard() {
                             todo.priority === "High"
                               ? "var(--accent)"
                               : todo.priority === "Medium"
-                              ? "#f59e0b"
-                              : "var(--border)",
+                                ? "#f59e0b"
+                                : "var(--border)",
                           color:
-                            todo.priority === "High" || todo.priority === "Medium"
+                            todo.priority === "High" ||
+                            todo.priority === "Medium"
                               ? "white"
                               : "var(--text-muted)",
                         }}
@@ -436,8 +458,45 @@ export default function AdminDashboard() {
                         {todo.priority || "Medium"}
                       </span>
                     </td>
-                    <td className="text-sm text-gray">
-                      {todo.dueDate ? new Date(todo.dueDate).toLocaleString() : "None"}
+                    <td className="text-sm">
+                      {todo.dueDate ? (
+                        <div
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          {isOverdue && (
+                            <span
+                              style={{
+                                backgroundColor: "#fee2e2",
+                                color: "#dc2626",
+                                padding: "2px 6px",
+                                borderRadius: "6px",
+                                fontSize: "0.7rem",
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.04em",
+                              }}
+                            >
+                              Overdue
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              color: isOverdue
+                                ? "#dc2626"
+                                : "var(--text-secondary)",
+                              fontWeight: isOverdue ? 600 : 400,
+                            }}
+                          >
+                            {new Date(todo.dueDate).toLocaleString()}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray">None</span>
+                      )}
                     </td>
                     <td>
                       <span
@@ -460,6 +519,8 @@ export default function AdminDashboard() {
                           setEditTodoId(todo.todoNumber);
                           setEditTodoTitle(todo.title);
                           setEditTodoCompleted(todo.completed);
+                          setEditTodoDueDate(toDatetimeLocal(todo.dueDate));
+                          setEditTodoPriority(todo.priority || "Medium");
                         }}
                       >
                         Edit
@@ -594,6 +655,30 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
+
+              <div className="form-group">
+                <label>Priority</label>
+                <select
+                  value={editTodoPriority}
+                  onChange={(e) => setEditTodoPriority(e.target.value)}
+                  disabled={isSubmitting}
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Due Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={editTodoDueDate}
+                  onChange={(e) => setEditTodoDueDate(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+
               <div className="form-group">
                 <label className="modal-checkbox-row">
                   <div className="todo-checkbox-wrapper" style={{ margin: 0 }}>
