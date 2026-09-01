@@ -22,6 +22,17 @@ const todoSchema = new mongoose.Schema(
       default: false,
     },
 
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+
     priority: {
       type: String,
       enum: ["Low", "Medium", "High"],
@@ -60,5 +71,8 @@ const todoSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+todoSchema.index({ userId: 1, isDeleted: 1, todoNumber: 1 });
+todoSchema.index({ userId: 1, isDeleted: 1, completed: 1 });
 
 module.exports = mongoose.model("Todo", todoSchema);

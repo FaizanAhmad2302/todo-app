@@ -12,6 +12,10 @@ const {
   getIncompleteTodos,
   deleteCompletedTodos,
   deleteIncompleteTodos,
+  restoreTodo,
+  getTrashTodos,
+  permanentDeleteTodo,
+  emptyTrash,
 } = require("../todo");
 const { getTodoHistory } = require("../services/TodoActivityService");
 
@@ -191,9 +195,27 @@ router.get("/", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+
+// GET /todos/trash
+router.get("/trash", async (req, res) => {
+  const userId = req.user.id;
+  const sort = req.query.sort;
+
+  try {
+    const todos = await getTrashTodos(userId, sort);
+    return res.status(200).json(todos);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;
+
+  if (isNaN(todoNumber) || !Number.isInteger(todoNumber) || todoNumber < 1) {
+    return res.status(400).json({ error: "Invalid todo number" });
+  }
 
   const todo = await getTodo(userId, todoNumber);
 
@@ -215,6 +237,30 @@ router.get("/:id/history", async (req, res) => {
 
   const history = await getTodoHistory(userId, todoNumber);
   res.status(200).json(history);
+});
+
+// PATCH /todos/:id/restore
+router.patch("/:id/restore", async (req, res) => {
+  const userId = req.user.id;
+  const todoNumber = Number(req.params.id);
+
+  if (!Number.isInteger(todoNumber) || todoNumber < 1) {
+    return res.status(400).json({ error: "Invalid todo number" });
+  }
+
+  try {
+    const restoredTodo = await restoreTodo(userId, todoNumber);
+
+    if (!restoredTodo) {
+      return res
+        .status(404)
+        .json({ error: `Todo ${todoNumber} not found in trash` });
+    }
+
+    return res.status(200).json(restoredTodo);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 // POST /todos
@@ -456,6 +502,43 @@ router.patch("/:id", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+
+// DELETE /todos/:id/permanent
+router.delete("/:id/permanent", async (req, res) => {
+  const userId = req.user.id;
+  const todoNumber = Number(req.params.id);
+
+  if (!Number.isInteger(todoNumber) || todoNumber < 1) {
+    return res.status(400).json({ error: "Invalid todo number" });
+  }
+
+  try {
+    const result = await permanentDeleteTodo(userId, todoNumber);
+
+    if (!result) {
+      return res
+        .status(404)
+        .json({ error: `Todo ${todoNumber} not found in trash` });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /todos/trash
+router.delete("/trash", async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    await emptyTrash(userId);
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
 router.delete("/:id", async (req, res) => {
   const todoNumber = Number(req.params.id);
   const userId = req.user.id;

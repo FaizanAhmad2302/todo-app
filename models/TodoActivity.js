@@ -17,7 +17,14 @@ const todoActivitySchema = new mongoose.Schema(
 
     action: {
       type: String,
-      enum: ["CREATED", "UPDATED", "COMPLETED", "UNCOMPLETED", "DELETED"],
+      enum: [
+        "CREATED",
+        "UPDATED",
+        "COMPLETED",
+        "UNCOMPLETED",
+        "DELETED",
+        "RESTORED",
+      ],
       required: true,
     },
 

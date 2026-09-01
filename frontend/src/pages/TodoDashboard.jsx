@@ -16,6 +16,10 @@ import {
   createTag,
   updateTag,
   deleteTag,
+  getTrashTodos,
+  restoreTodo,
+  permanentDeleteTodo,
+  emptyTrash,
 } from "../services/todoApi";
 
 import { TodoForm } from "../components/TodoForm";
@@ -72,18 +76,23 @@ export default function TodoDashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      let completedParam = undefined;
-      if (filter === "active") completedParam = false;
-      if (filter === "completed") completedParam = true;
+      if (filter === "trash") {
+        const data = await getTrashTodos(sort);
+        setTodos(data);
+      } else {
+        let completedParam = undefined;
+        if (filter === "active") completedParam = false;
+        if (filter === "completed") completedParam = true;
 
-      const data = await getTodos(
-        completedParam,
-        sort,
-        priorityFilter,
-        categoryFilter,
-        tagFilter
-      );
-      setTodos(data);
+        const data = await getTodos(
+          completedParam,
+          sort,
+          priorityFilter,
+          categoryFilter,
+          tagFilter
+        );
+        setTodos(data);
+      }
     } catch (err) {
       setError(err.message || "Failed to load tasks");
       showToast(err.message || "Failed to load tasks", "error");
@@ -126,7 +135,7 @@ export default function TodoDashboard() {
       await createTodo(title, dueDate, priority, categoryId, tagsList);
       showToast("Task added successfully!");
       if (onSuccess) onSuccess();
-      if (filter !== "completed") {
+      if (filter !== "completed" && filter !== "trash") {
         await loadTodos();
       }
     } catch (err) {
@@ -171,9 +180,45 @@ export default function TodoDashboard() {
     try {
       await deleteTodo(id);
       setTodos((prev) => prev.filter((t) => t.todoNumber !== id));
-      showToast("Task deleted");
+      showToast("Task moved to recycle bin");
     } catch (err) {
       showToast(err.message || "Failed to delete task", "error");
+    }
+  };
+
+  const handleRestoreTodo = async (todo) => {
+    try {
+      await restoreTodo(todo.todoNumber);
+      setTodos((prev) => prev.filter((t) => t.todoNumber !== todo.todoNumber));
+      showToast(`"${todo.title}" restored successfully!`);
+    } catch (err) {
+      showToast(err.message || "Failed to restore task", "error");
+    }
+  };
+
+  const handlePermanentDelete = async (id) => {
+    try {
+      await permanentDeleteTodo(id);
+      setTodos((prev) => prev.filter((t) => t.todoNumber !== id));
+      showToast("Task permanently deleted");
+    } catch (err) {
+      showToast(err.message || "Failed to delete task", "error");
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to permanently delete all items in the Recycle Bin? This action cannot be undone."
+      )
+    )
+      return;
+    try {
+      await emptyTrash();
+      showToast("Recycle bin emptied");
+      await loadTodos();
+    } catch (err) {
+      showToast(err.message || "Failed to empty recycle bin", "error");
     }
   };
 
@@ -183,11 +228,15 @@ export default function TodoDashboard() {
   };
 
   const handleClearCompleted = async () => {
-    if (!window.confirm("Are you sure you want to clear all completed tasks?"))
+    if (
+      !window.confirm(
+        "Are you sure you want to move all completed tasks to the recycle bin?"
+      )
+    )
       return;
     try {
       await deleteCompletedTodos();
-      showToast("Completed tasks deleted");
+      showToast("Completed tasks moved to recycle bin");
       await loadTodos();
     } catch (err) {
       showToast(err.message || "Failed to clear completed tasks", "error");
@@ -195,11 +244,15 @@ export default function TodoDashboard() {
   };
 
   const handleClearActive = async () => {
-    if (!window.confirm("Are you sure you want to clear all active tasks?"))
+    if (
+      !window.confirm(
+        "Are you sure you want to move all active tasks to the recycle bin?"
+      )
+    )
       return;
     try {
       await deleteIncompleteTodos();
-      showToast("Active tasks deleted");
+      showToast("Active tasks moved to recycle bin");
       await loadTodos();
     } catch (err) {
       showToast(err.message || "Failed to clear active tasks", "error");
@@ -209,13 +262,13 @@ export default function TodoDashboard() {
   const handleClearAll = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to delete ALL your tasks? This cannot be undone."
+        "Are you sure you want to move ALL your tasks to the recycle bin?"
       )
     )
       return;
     try {
       await deleteAllTodos();
-      showToast("All tasks deleted");
+      showToast("All tasks moved to recycle bin");
       await loadTodos();
     } catch (err) {
       showToast(err.message || "Failed to delete all tasks", "error");
@@ -325,6 +378,7 @@ export default function TodoDashboard() {
   const getPageTitle = () => {
     if (filter === "active") return "Active Tasks";
     if (filter === "completed") return "Completed Tasks";
+    if (filter === "trash") return "Recycle Bin";
     return "All Tasks";
   };
 
@@ -333,6 +387,7 @@ export default function TodoDashboard() {
       return "No active tasks right now. You're all caught up!";
     if (filter === "completed")
       return "No completed tasks yet. Time to get to work!";
+    if (filter === "trash") return "Recycle bin is empty.";
     return "Your list is empty. Add a task to get started.";
   };
 
@@ -359,19 +414,25 @@ export default function TodoDashboard() {
             className={`nav-link ${filter === "all" ? "active" : ""}`}
             onClick={() => setFilter("all")}
           >
-            All Tasks
+            📋 All Tasks
           </button>
           <button
             className={`nav-link ${filter === "active" ? "active" : ""}`}
             onClick={() => setFilter("active")}
           >
-            Active
+            ⚡ Active
           </button>
           <button
             className={`nav-link ${filter === "completed" ? "active" : ""}`}
             onClick={() => setFilter("completed")}
           >
-            Completed
+            ✅ Completed
+          </button>
+          <button
+            className={`nav-link ${filter === "trash" ? "active" : ""}`}
+            onClick={() => setFilter("trash")}
+          >
+            🗑️ Recycle Bin
           </button>
         </div>
 
@@ -667,24 +728,56 @@ export default function TodoDashboard() {
       {/* Main Content Area */}
       <main className="main-content">
         <div className="content-wrapper">
-          <div className="header-row">
+          <div
+            className="header-row"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <h1 className="main-title">{getPageTitle()}</h1>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search tasks"
-            />
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              {filter === "trash" && todos.length > 0 && (
+                <button
+                  className="btn-danger"
+                  onClick={handleEmptyTrash}
+                  style={{
+                    backgroundColor: "#fee2e2",
+                    color: "#dc2626",
+                    border: "1px solid #fca5a5",
+                    borderRadius: "8px",
+                    padding: "6px 14px",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  🗑️ Empty Bin
+                </button>
+              )}
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search tasks"
+              />
+            </div>
           </div>
 
-          <TodoForm
-            onSubmit={handleAddTodo}
-            isSubmitting={isAdding}
-            categories={categories}
-            tags={tags}
-          />
+          {filter !== "trash" && (
+            <TodoForm
+              onSubmit={handleAddTodo}
+              isSubmitting={isAdding}
+              categories={categories}
+              tags={tags}
+            />
+          )}
 
           {error && !isLoading && (
             <div className="empty-state" style={{ color: "var(--accent)" }}>
@@ -707,10 +800,13 @@ export default function TodoDashboard() {
                 todos={displayedTodos}
                 categories={categories}
                 tags={tags}
+                isTrash={filter === "trash"}
                 onToggle={handleToggleTodo}
                 onUpdate={handleUpdateTodo}
                 onDelete={handleDeleteTodo}
                 onHistory={handleHistoryTodo}
+                onRestore={handleRestoreTodo}
+                onPermanentDelete={handlePermanentDelete}
                 emptyMessage={getEmptyMessage()}
               />
             )

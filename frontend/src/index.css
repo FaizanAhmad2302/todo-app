@@ -938,3 +938,20 @@ h3,
   padding: 1px 6px;
   border-radius: 4px;
 }
+
+/* Trash UI Styles */
+.todo-item.trashed {
+  background-color: #fafaf9;
+  border-color: #e7e5e4;
+  opacity: 0.9;
+}
+
+.todo-item.trashed:hover {
+  background-color: #f5f5f4;
+  border-color: #d6d3d1;
+}
+
+.icon-btn.restore-btn:hover {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
