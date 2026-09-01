@@ -18,6 +18,7 @@ const {
   emptyTrash,
 } = require("../todo");
 const { getTodoHistory } = require("../services/TodoActivityService");
+const { getUserStatistics } = require("../services/ProductivityService");
 
 const router = express.Router();
 
@@ -195,6 +196,44 @@ router.get("/", async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+
+/**
+ * @swagger
+ * /todos/statistics:
+ *   get:
+ *     summary: Get user productivity statistics and breakdown
+ *     description: |
+ *       Returns overview metrics (total, completed, pending, completion rate),
+ *       time-based counts (completed today/week, due today, overdue), priority distributions,
+ *       and category breakdowns for the authenticated user. Excludes trashed tasks.
+ *     tags: [Todos]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Productivity statistics calculated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+// GET /todos/statistics
+router.get("/statistics", async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const stats = await getUserStatistics(userId);
+    return res.status(200).json(stats);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 // GET /todos/trash
 router.get("/trash", async (req, res) => {

@@ -290,3 +290,8 @@ export const emptyTrash = async () => {
     method: "DELETE",
   });
 };
+
+// Productivity Statistics export
+export const getStatistics = async () => {
+  return apiFetch("/todos/statistics");
+};

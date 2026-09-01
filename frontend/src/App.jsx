@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import TodoDashboard from "./pages/TodoDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import ProductivityDashboard from "./pages/ProductivityDashboard";
 import "./index.css";
 
 function App() {
@@ -50,6 +51,11 @@ function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<TodoDashboard />} />
+        <Route path="/productivity" element={<ProductivityDashboard />} />
+        <Route
+          path="/statistics"
+          element={<Navigate to="/productivity" replace />}
+        />
       </Route>
 
       <Route element={<AuthenticatedRoute />}>

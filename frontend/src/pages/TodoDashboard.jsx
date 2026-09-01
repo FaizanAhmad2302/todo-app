@@ -434,6 +434,13 @@ export default function TodoDashboard() {
           >
             🗑️ Recycle Bin
           </button>
+          <Link
+            to="/productivity"
+            className="nav-link"
+            style={{ marginTop: "4px" }}
+          >
+            📊 Productivity
+          </Link>
         </div>
 
         {/* Categories Section */}
