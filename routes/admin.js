@@ -338,8 +338,10 @@ router.patch("/todos/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid Todo ID" });
     }
 
-    const existingTodo = await Todo.findOne({ todoNumber: todoId });
-
+    const existingTodo = await Todo.findOne({
+      todoNumber: todoId,
+      isDeleted: false,
+    });
     if (!existingTodo) {
       return res.status(404).json({ error: "Todo not found" });
     }
@@ -492,7 +494,7 @@ router.patch("/todos/:id", async (req, res) => {
     }
 
     if (Object.keys(changes).length === 0) {
-      const todo = await Todo.findOne({ todoNumber: todoId })
+      const todo = await Todo.findOne({ todoNumber: todoId, isDeleted: false })
         .populate("categoryId", "name")
         .populate("tags", "name");
 
@@ -500,7 +502,7 @@ router.patch("/todos/:id", async (req, res) => {
     }
 
     const todo = await Todo.findOneAndUpdate(
-      { todoNumber: todoId },
+      { todoNumber: todoId, isDeleted: false },
       updateData,
       {
         returnDocument: "after",
@@ -610,7 +612,6 @@ router.delete("/todos/:id", async (req, res) => {
     if (!result) {
       return res.status(404).json({ error: "Todo not found" });
     }
-
     await recordActivity({
       userId: todo.userId,
       todoNumber: todo.todoNumber,

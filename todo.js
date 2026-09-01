@@ -400,7 +400,7 @@ async function deleteTodo(userId, todoNumber) {
 
   const result = await repository.delete(userId, todoNumber);
 
-  if (result.deletedCount === 0) {
+  if (result.modifiedCount === 0) {
     return false;
   }
 
@@ -541,6 +541,43 @@ async function deleteIncompleteTodos(userId) {
   return result.deletedCount;
 }
 
+async function restoreTodo(userId, todoNumber) {
+  validateTodoNumber(todoNumber);
+
+  const restoredTodo = await repository.restore(userId, todoNumber);
+
+  if (!restoredTodo) {
+    return null;
+  }
+
+  await recordActivity({
+    userId,
+    todoNumber,
+    action: "RESTORED",
+    changes: {
+      title: restoredTodo.title,
+      completed: restoredTodo.completed,
+    },
+    performedBy: userId,
+  });
+
+  return restoredTodo;
+}
+
+async function getTrashTodos(userId, sortBy) {
+  return await repository.findDeleted(userId, sortBy);
+}
+
+async function permanentDeleteTodo(userId, todoNumber) {
+  validateTodoNumber(todoNumber);
+
+  return await repository.permanentDelete(userId, todoNumber);
+}
+
+async function emptyTrash(userId) {
+  return await repository.permanentDeleteAll(userId);
+}
+
 // Admin Methods
 async function getAllTodosAdmin(sortBy, priority, categoryId, tagId) {
   return await repository.findAllAdmin(sortBy, priority, categoryId, tagId);
@@ -559,6 +596,10 @@ module.exports = {
   getIncompleteTodos,
   deleteCompletedTodos,
   deleteIncompleteTodos,
+  restoreTodo,
+  getTrashTodos,
+  permanentDeleteTodo,
+  emptyTrash,
   getAllTodosAdmin,
   validateDueDate,
   validatePriority,

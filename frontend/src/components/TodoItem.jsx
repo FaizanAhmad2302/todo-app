@@ -12,10 +12,13 @@ export function TodoItem({
   todo,
   categories = [],
   tags = [],
+  isTrash = false,
   onToggle,
   onUpdate,
   onDelete,
   onHistory,
+  onRestore,
+  onPermanentDelete,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(todo.title);
@@ -102,19 +105,25 @@ export function TodoItem({
 
   return (
     <li
-      className={`todo-item ${todo.completed ? "completed" : ""} ${isOverdue ? "overdue" : ""}`}
+      className={`todo-item ${todo.completed ? "completed" : ""} ${isTrash ? "trashed" : ""}`}
     >
-      <div className="todo-checkbox-wrapper">
-        <input
-          type="checkbox"
-          className="todo-checkbox"
-          checked={todo.completed}
-          onChange={handleToggle}
-          disabled={isSubmitting}
-          aria-label={`Mark "${todo.title}" as ${todo.completed ? "incomplete" : "complete"}`}
-        />
-        <div className="checkbox-custom"></div>
-      </div>
+      {isTrash ? (
+        <div className="todo-checkbox-wrapper" style={{ opacity: 0.6 }}>
+          <span style={{ fontSize: "1.1rem" }}>🗑️</span>
+        </div>
+      ) : (
+        <div className="todo-checkbox-wrapper">
+          <input
+            type="checkbox"
+            className="todo-checkbox"
+            checked={todo.completed}
+            onChange={handleToggle}
+            disabled={isSubmitting}
+            aria-label={`Mark "${todo.title}" as ${todo.completed ? "incomplete" : "complete"}`}
+          />
+          <div className="checkbox-custom"></div>
+        </div>
+      )}
 
       {isEditing ? (
         <div
@@ -176,22 +185,9 @@ export function TodoItem({
                   <button
                     key={t._id}
                     type="button"
+                    className={`tag-chip ${isSelected ? "selected" : ""}`}
                     onClick={() => toggleEditTag(t._id)}
-                    style={{
-                      padding: "2px 6px",
-                      fontSize: "0.7rem",
-                      borderRadius: "10px",
-                      border: isSelected
-                        ? "1px solid var(--accent, #6366f1)"
-                        : "1px solid var(--border)",
-                      backgroundColor: isSelected
-                        ? "rgba(99, 102, 241, 0.15)"
-                        : "transparent",
-                      color: isSelected
-                        ? "var(--accent, #6366f1)"
-                        : "var(--text-secondary)",
-                      cursor: "pointer",
-                    }}
+                    style={{ fontSize: "0.75rem", padding: "2px 8px" }}
                   >
                     #{t.name}
                   </button>
@@ -207,7 +203,7 @@ export function TodoItem({
             <button
               className="btn-primary"
               onClick={handleUpdate}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !editTitle.trim()}
             >
               Save
             </button>
@@ -237,7 +233,19 @@ export function TodoItem({
               gap: "6px",
             }}
           >
-            <span className="todo-title">{todo.title}</span>
+            <span
+              className="todo-title"
+              style={
+                isTrash
+                  ? {
+                      textDecoration: "line-through",
+                      color: "var(--text-muted)",
+                    }
+                  : {}
+              }
+            >
+              {todo.title}
+            </span>
 
             {todo.priority && (
               <span
@@ -303,115 +311,219 @@ export function TodoItem({
               })}
           </div>
 
-          {todo.dueDate && (
+          {isTrash ? (
             <span
               style={{
                 fontSize: "0.75rem",
-                color: isOverdue ? "#dc2626" : "var(--text-muted)",
+                color: "#dc2626",
                 marginTop: "2px",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "6px",
-                fontWeight: isOverdue ? 600 : 400,
+                gap: "4px",
               }}
             >
-              {isOverdue && (
-                <span
-                  style={{
-                    backgroundColor: "#fee2e2",
-                    color: "#dc2626",
-                    padding: "1px 6px",
-                    borderRadius: "6px",
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  Overdue
-                </span>
-              )}
-              <span>Due: {new Date(todo.dueDate).toLocaleString()}</span>
+              <span>
+                🗑️ Deleted:{" "}
+                {todo.deletedAt
+                  ? new Date(todo.deletedAt).toLocaleString()
+                  : "Recently"}
+              </span>
             </span>
+          ) : (
+            todo.dueDate && (
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  color: isOverdue ? "#dc2626" : "var(--text-muted)",
+                  marginTop: "2px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontWeight: isOverdue ? 600 : 400,
+                }}
+              >
+                {isOverdue && (
+                  <span
+                    style={{
+                      backgroundColor: "#fee2e2",
+                      color: "#dc2626",
+                      padding: "1px 6px",
+                      borderRadius: "6px",
+                      fontSize: "0.65rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Overdue
+                  </span>
+                )}
+                <span>Due: {new Date(todo.dueDate).toLocaleString()}</span>
+              </span>
+            )
           )}
         </div>
       )}
 
       {!isEditing && (
-        <div className="todo-actions">
-          <button
-            className="icon-btn"
-            onClick={() => setIsEditing(true)}
-            disabled={isSubmitting}
-            aria-label="Edit todo"
-            title="Edit"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-            </svg>
-          </button>
+        <div className="todo-actions" style={isTrash ? { opacity: 1 } : {}}>
+          {isTrash ? (
+            <>
+              <button
+                className="icon-btn restore-btn"
+                onClick={() => onRestore && onRestore(todo)}
+                disabled={isSubmitting}
+                aria-label="Restore task"
+                title="Restore Task"
+                style={{ color: "#059669" }}
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+              </button>
 
-          <button
-            className="icon-btn"
-            onClick={() => onHistory && onHistory(todo)}
-            disabled={isSubmitting}
-            aria-label="View todo history"
-            title="History"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M3 12a9 9 0 1 0 3-6.7" />
-              <polyline points="3 3 3 9 9 9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-          </button>
+              <button
+                className="icon-btn"
+                onClick={() => onHistory && onHistory(todo)}
+                disabled={isSubmitting}
+                aria-label="View todo history"
+                title="History"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <polyline points="3 3 3 9 9 9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              </button>
 
-          <button
-            className="icon-btn delete"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Are you sure you want to delete "${todo.title}"?`
-                )
-              ) {
-                onDelete(todo.todoNumber);
-              }
-            }}
-            disabled={isSubmitting}
-            aria-label="Delete todo"
-            title="Delete"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
+              <button
+                className="icon-btn delete"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Are you sure you want to PERMANENTLY delete "${todo.title}"? This cannot be undone.`
+                    )
+                  ) {
+                    onPermanentDelete && onPermanentDelete(todo.todoNumber);
+                  }
+                }}
+                disabled={isSubmitting}
+                aria-label="Permanently delete todo"
+                title="Delete Permanently"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="icon-btn"
+                onClick={() => setIsEditing(true)}
+                disabled={isSubmitting}
+                aria-label="Edit todo"
+                title="Edit"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+              </button>
+
+              <button
+                className="icon-btn"
+                onClick={() => onHistory && onHistory(todo)}
+                disabled={isSubmitting}
+                aria-label="View todo history"
+                title="History"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <polyline points="3 3 3 9 9 9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              </button>
+
+              <button
+                className="icon-btn delete"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Are you sure you want to delete "${todo.title}"?`
+                    )
+                  ) {
+                    onDelete(todo.todoNumber);
+                  }
+                }}
+                disabled={isSubmitting}
+                aria-label="Delete todo"
+                title="Delete"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </>
+          )}
         </div>
       )}
     </li>

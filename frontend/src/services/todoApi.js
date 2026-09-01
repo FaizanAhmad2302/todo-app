@@ -265,3 +265,28 @@ export const getTodoHistory = async (todoNumber) => {
 export const getAdminTodoHistory = async (todoNumber) => {
   return apiFetch(`/admin/todos/${todoNumber}/history`);
 };
+
+// Trash & Soft Delete exports
+export const getTrashTodos = async (sort) => {
+  let url = "/todos/trash";
+  if (sort) url += `?sort=${sort}`;
+  return apiFetch(url);
+};
+
+export const restoreTodo = async (todoNumber) => {
+  return apiFetch(`/todos/${todoNumber}/restore`, {
+    method: "PATCH",
+  });
+};
+
+export const permanentDeleteTodo = async (todoNumber) => {
+  return apiFetch(`/todos/${todoNumber}/permanent`, {
+    method: "DELETE",
+  });
+};
+
+export const emptyTrash = async () => {
+  return apiFetch("/todos/trash", {
+    method: "DELETE",
+  });
+};

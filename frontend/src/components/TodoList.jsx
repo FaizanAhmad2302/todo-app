@@ -5,10 +5,13 @@ export function TodoList({
   todos,
   categories = [],
   tags = [],
+  isTrash = false,
   onToggle,
   onUpdate,
   onDelete,
   onHistory,
+  onRestore,
+  onPermanentDelete,
   emptyMessage,
 }) {
   if (todos.length === 0) {
@@ -27,10 +30,13 @@ export function TodoList({
           todo={todo}
           categories={categories}
           tags={tags}
+          isTrash={isTrash}
           onToggle={onToggle}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onHistory={onHistory}
+          onRestore={onRestore}
+          onPermanentDelete={onPermanentDelete}
         />
       ))}
     </ul>

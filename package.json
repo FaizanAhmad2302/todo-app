@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "concurrently \"npm start\" \"npm run dev --prefix frontend\"",
+    "dev": "concurrently \"node --watch server.js\" \"npm run dev --prefix frontend\"",
     "test": "cross-env NODE_ENV=test node --test --test-concurrency=1",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
