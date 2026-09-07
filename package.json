@@ -12,7 +12,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "concurrently \"node --watch backend/server.js\" \"npm run dev --prefix frontend\"",
-    "test": "cross-env NODE_ENV=test node --test --test-concurrency=1 \"backend/test/**/*.test.js\"",
+    "test": "cross-env NODE_ENV=test node --test --test-concurrency=1",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"
