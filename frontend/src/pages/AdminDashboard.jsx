@@ -8,6 +8,18 @@ import {
   adminDeleteTodo,
   adminDeleteUser,
 } from "../services/todoApi";
+
+import {
+  Users,
+  ListTodo,
+  CheckCircle2,
+  Clock,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+  ShieldCheck,
+} from "lucide-react";
+
 import { Toast } from "../components/Toast";
 import { TodoHistoryModal } from "../components/TodoHistoryModal";
 import "./AdminDashboard.css";
@@ -178,28 +190,36 @@ export default function AdminDashboard() {
     <div className="admin-dashboard-content fade-in">
       <div className="admin-stats-grid">
         <div className="stat-card">
-          <div className="stat-card-icon users">👥</div>
+          <div className="stat-card-icon users">
+            <Users />
+          </div>
           <div className="stat-card-info">
             <h3>Total Users</h3>
             <p className="stat-value">{normalUsers.length}</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon todos">📝</div>
+          <div className="stat-card-icon todos">
+            <ListTodo />
+          </div>
           <div className="stat-card-info">
             <h3>Total Todos</h3>
             <p className="stat-value">{todos.length}</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon success">✓</div>
+          <div className="stat-card-icon success">
+            <CheckCircle2 />
+          </div>
           <div className="stat-card-info">
             <h3>Completed Todos</h3>
             <p className="stat-value">{completedTodos}</p>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon pending">⏳</div>
+          <div className="stat-card-icon pending">
+            <Clock />
+          </div>
           <div className="stat-card-info">
             <h3>Pending Todos</h3>
             <p className="stat-value">{pendingTodos}</p>
@@ -235,7 +255,9 @@ export default function AdminDashboard() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <div style={{ fontSize: "2rem", marginBottom: "12px" }}>👥</div>
+            <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
+              <Users size={32} />
+            </div>
             <h3
               style={{
                 fontSize: "1.1rem",
@@ -268,7 +290,9 @@ export default function AdminDashboard() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <div style={{ fontSize: "2rem", marginBottom: "12px" }}>📝</div>
+            <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
+              <ListTodo size={32} />
+            </div>
             <h3
               style={{
                 fontSize: "1.1rem",
@@ -301,7 +325,9 @@ export default function AdminDashboard() {
               boxShadow: "var(--shadow-sm)",
             }}
           >
-            <div style={{ fontSize: "2rem", marginBottom: "12px" }}>🔒</div>
+            <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
+              <ShieldCheck size={32} />
+            </div>
             <h3
               style={{
                 fontSize: "1.1rem",
@@ -626,31 +652,46 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab("overview")}
             className={`nav-item btn-link ${activeTab === "overview" ? "active" : ""}`}
           >
-            <span className="icon">📊</span> Overview
+            <span className="icon">
+              <LayoutDashboard size={18} />
+            </span>{" "}
+            Overview
           </button>
           <button
             onClick={() => setActiveTab("users")}
             className={`nav-item btn-link ${activeTab === "users" ? "active" : ""}`}
           >
-            <span className="icon">👥</span> Users
+            <span className="icon">
+              <Users size={18} />
+            </span>{" "}
+            Users
           </button>
           <button
             onClick={() => setActiveTab("todos")}
             className={`nav-item btn-link ${activeTab === "todos" ? "active" : ""}`}
           >
-            <span className="icon">📝</span> Todos
+            <span className="icon">
+              <ListTodo size={18} />
+            </span>{" "}
+            Todos
           </button>
           <Link
             to="/profile"
             className="nav-item btn-link"
             style={{ textDecoration: "none" }}
           >
-            <span className="icon">⚙️</span> Settings
+            <span className="icon">
+              <Settings size={18} />
+            </span>{" "}
+            Settings
           </Link>
         </nav>
         <div className="admin-sidebar-footer">
           <button onClick={handleLogout} className="admin-logout-btn">
-            <span className="icon">🚪</span> Logout
+            <span className="icon">
+              <LogOut size={18} />
+            </span>{" "}
+            Logout
           </button>
         </div>
       </aside>
