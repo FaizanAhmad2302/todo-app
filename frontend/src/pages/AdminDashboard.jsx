@@ -9,16 +9,15 @@ import {
   adminDeleteUser,
 } from "../services/todoApi";
 
-import {
-  Users,
-  ListTodo,
-  CheckCircle2,
-  Clock,
-  LayoutDashboard,
-  Settings,
-  LogOut,
-  ShieldCheck,
-} from "lucide-react";
+import PeopleIcon from "@mui/icons-material/People";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SecurityIcon from "@mui/icons-material/Security";
+import FolderIcon from "@mui/icons-material/Folder";
+import LayoutDashboardIcon from "@mui/icons-material/Dashboard";
 
 import { Toast } from "../components/Toast";
 import { TodoHistoryModal } from "../components/TodoHistoryModal";
@@ -191,7 +190,7 @@ export default function AdminDashboard() {
       <div className="admin-stats-grid">
         <div className="stat-card">
           <div className="stat-card-icon users">
-            <Users />
+            <PeopleIcon />
           </div>
           <div className="stat-card-info">
             <h3>Total Users</h3>
@@ -200,7 +199,7 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-card">
           <div className="stat-card-icon todos">
-            <ListTodo />
+            <FormatListBulletedIcon />
           </div>
           <div className="stat-card-info">
             <h3>Total Todos</h3>
@@ -209,7 +208,7 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-card">
           <div className="stat-card-icon success">
-            <CheckCircle2 />
+            <CheckCircleIcon />
           </div>
           <div className="stat-card-info">
             <h3>Completed Todos</h3>
@@ -218,7 +217,7 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-card">
           <div className="stat-card-icon pending">
-            <Clock />
+            <AccessTimeIcon />
           </div>
           <div className="stat-card-info">
             <h3>Pending Todos</h3>
@@ -256,7 +255,7 @@ export default function AdminDashboard() {
             }}
           >
             <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
-              <Users size={32} />
+              <PeopleIcon size={32} />
             </div>
             <h3
               style={{
@@ -291,7 +290,7 @@ export default function AdminDashboard() {
             }}
           >
             <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
-              <ListTodo size={32} />
+              <FormatListBulletedIcon size={32} />
             </div>
             <h3
               style={{
@@ -326,7 +325,7 @@ export default function AdminDashboard() {
             }}
           >
             <div style={{ marginBottom: "12px", color: "var(--accent)" }}>
-              <ShieldCheck size={32} />
+              <SecurityIcon size={32} />
             </div>
             <h3
               style={{
@@ -493,7 +492,7 @@ export default function AdminDashboard() {
                             color: "#6366f1",
                           }}
                         >
-                          📁 {categoryName}
+                          <FolderIcon /> {categoryName}
                         </span>
                       ) : (
                         <span className="text-gray">-</span>
@@ -653,7 +652,7 @@ export default function AdminDashboard() {
             className={`nav-item btn-link ${activeTab === "overview" ? "active" : ""}`}
           >
             <span className="icon">
-              <LayoutDashboard size={18} />
+              <LayoutDashboardIcon size={18} />
             </span>{" "}
             Overview
           </button>
@@ -662,7 +661,7 @@ export default function AdminDashboard() {
             className={`nav-item btn-link ${activeTab === "users" ? "active" : ""}`}
           >
             <span className="icon">
-              <Users size={18} />
+              <PeopleIcon size={18} />
             </span>{" "}
             Users
           </button>
@@ -671,7 +670,7 @@ export default function AdminDashboard() {
             className={`nav-item btn-link ${activeTab === "todos" ? "active" : ""}`}
           >
             <span className="icon">
-              <ListTodo size={18} />
+              <FormatListBulletedIcon size={18} />
             </span>{" "}
             Todos
           </button>
@@ -681,7 +680,7 @@ export default function AdminDashboard() {
             style={{ textDecoration: "none" }}
           >
             <span className="icon">
-              <Settings size={18} />
+              <SettingsIcon size={18} />
             </span>{" "}
             Settings
           </Link>
@@ -689,7 +688,7 @@ export default function AdminDashboard() {
         <div className="admin-sidebar-footer">
           <button onClick={handleLogout} className="admin-logout-btn">
             <span className="icon">
-              <LogOut size={18} />
+              <LogoutIcon size={18} />
             </span>{" "}
             Logout
           </button>

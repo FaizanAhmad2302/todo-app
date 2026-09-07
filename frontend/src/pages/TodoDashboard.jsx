@@ -22,15 +22,14 @@ import {
   emptyTrash,
 } from "../services/todoApi";
 
-import {
-  ListTodo,
-  Zap,
-  CheckCircle2,
-  Trash2,
-  BarChart3,
-  Folder,
-  Pencil,
-} from "lucide-react";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import FolderIcon from "@mui/icons-material/Folder";
+import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
 import { TodoForm } from "../components/TodoForm";
 import { TodoList } from "../components/TodoList";
@@ -424,33 +423,33 @@ export default function TodoDashboard() {
             className={`nav-link ${filter === "all" ? "active" : ""}`}
             onClick={() => setFilter("all")}
           >
-            <ListTodo className="bar-icon" />
+            <ListAltIcon className="bar-icon" />
             All Tasks
           </button>
           <button
             className={`nav-link ${filter === "active" ? "active" : ""}`}
             onClick={() => setFilter("active")}
           >
-            <Zap className="bar-icon" /> Active
+            <FlashOnIcon className="bar-icon" /> Active
           </button>
           <button
             className={`nav-link ${filter === "completed" ? "active" : ""}`}
             onClick={() => setFilter("completed")}
           >
-            <CheckCircle2 className="bar-icon" /> Completed
+            <CheckCircleIcon className="bar-icon" /> Completed
           </button>
           <button
             className={`nav-link ${filter === "trash" ? "active" : ""}`}
             onClick={() => setFilter("trash")}
           >
-            <Trash2 className="bar-icon" /> Recycle Bin
+            <DeleteIcon className="bar-icon" /> Recycle Bin
           </button>
           <Link
             to="/productivity"
             className="nav-link"
             style={{ marginTop: "4px" }}
           >
-            <BarChart3 className="bar-icon" /> Productivity
+            <BarChartIcon className="bar-icon" /> Productivity
           </Link>
         </div>
 
@@ -476,7 +475,7 @@ export default function TodoDashboard() {
               }}
               title="Add Category"
             >
-              {showAddCategory ? "✕" : "+"}
+              {showAddCategory ? <DeleteIcon /> : <AddIcon />}
             </button>
           </div>
 
@@ -519,7 +518,7 @@ export default function TodoDashboard() {
                 style={{ flex: 1, textAlign: "left" }}
                 onClick={() => setCategoryFilter(c._id)}
               >
-                <Folder className="bar-icon" /> {c.name}
+                <FolderIcon className="bar-icon" /> {c.name}
               </button>
               <div style={{ display: "flex", gap: "2px" }}>
                 <button
@@ -534,7 +533,7 @@ export default function TodoDashboard() {
                   }}
                   title="Rename"
                 >
-                  <Pencil className="bar-icon" />
+                  <EditIcon className="bar-icon" />
                 </button>
                 <button
                   onClick={() => handleDeleteCategory(c)}
@@ -548,7 +547,7 @@ export default function TodoDashboard() {
                   }}
                   title="Delete"
                 >
-                  <Trash2 className="bar-icon" />
+                  <DeleteIcon className="bar-icon" />
                 </button>
               </div>
             </div>
@@ -577,7 +576,7 @@ export default function TodoDashboard() {
               }}
               title="Add Tag"
             >
-              {showAddTag ? "✕" : "+"}
+              {showAddTag ? <DeleteIcon /> : <AddIcon />}
             </button>
           </div>
 
@@ -632,7 +631,7 @@ export default function TodoDashboard() {
                   }}
                   title="Rename"
                 >
-                  ✎
+                  <EditIcon />
                 </button>
                 <button
                   onClick={() => handleDeleteTag(t)}
@@ -646,7 +645,7 @@ export default function TodoDashboard() {
                   }}
                   title="Delete"
                 >
-                  ✕
+                  <DeleteIcon />
                 </button>
               </div>
             </div>
@@ -774,7 +773,7 @@ export default function TodoDashboard() {
                     gap: "6px",
                   }}
                 >
-                  <Trash2 className="bar-icon" /> Empty Bin
+                  <DeleteIcon className="bar-icon" /> Empty Bin
                 </button>
               )}
               <input
