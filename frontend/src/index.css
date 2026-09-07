@@ -2,17 +2,20 @@
 
 :root {
   /* Colors - Warm Daily Focus Theme */
-  --accent: #c26252; /* Rust/Terracotta */
-  --accent-hover: #a85345;
-  --accent-light: #f0d9d5;
-  --background: #f7f3eb; /* Cream */
+  --accent: #4f46e5;
+  /* Rust/Terracotta */
+  --accent-hover: #4338ca;
+  --accent-light: #e0e7ff;
+  --background: #f8fafc;
+  /* Cream */
   --surface: #ffffff;
 
-  --text-main: #362923; /* Deep brown */
-  --text-muted: #8e7f78;
-  --text-light: #b5a8a3;
-  --border: #e8dfd5;
-  --border-focus: #c26252;
+  --text-main: #0f172a;
+  /* Deep brown */
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --border: #e2e8f0;
+  --border-focus: #4f46e5;
 
   /* Layout & Spacing */
   --border-radius: 16px;
@@ -100,7 +103,8 @@ h3,
 .nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: 8px;
   color: var(--text-main);
@@ -153,7 +157,8 @@ h3,
 .header-row {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* Changed from flex-end */
+  align-items: center;
+  /* Changed from flex-end */
   margin-bottom: var(--spacing-xl);
 }
 
@@ -523,6 +528,7 @@ h3,
 .danger-link {
   color: #ef4444;
 }
+
 .danger-link:hover {
   background-color: #fee2e2;
 }
@@ -546,6 +552,7 @@ h3,
   padding: 40px;
   color: var(--text-muted);
 }
+
 .spinner {
   width: 24px;
   height: 24px;
@@ -584,6 +591,7 @@ h3,
 .toast.success {
   border-left-color: var(--accent);
 }
+
 .toast.error {
   border-left-color: #ef4444;
 }
@@ -595,6 +603,7 @@ h3,
   color: var(--text-light);
   cursor: pointer;
 }
+
 .toast-close:hover {
   color: var(--text-main);
 }
@@ -619,6 +628,7 @@ h3,
   font-size: 0.8rem;
   cursor: pointer;
 }
+
 .btn-ghost {
   background-color: transparent;
   color: var(--text-muted);
@@ -633,18 +643,22 @@ h3,
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }
+
   .sidebar {
     border-right: none;
     border-bottom: 1px solid var(--border);
     padding: 16px;
   }
+
   .nav-section {
     margin-bottom: 16px;
   }
+
   .brand {
     margin-bottom: 16px;
     font-size: 1.25rem;
   }
+
   .main-content {
     padding: 24px 16px;
   }
@@ -661,6 +675,7 @@ h3,
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -676,6 +691,7 @@ h3,
   background-color: var(--background);
   padding: 24px;
 }
+
 .auth-card {
   background: var(--surface);
   padding: 48px;
@@ -685,39 +701,58 @@ h3,
   max-width: 480px;
   text-align: center;
 }
+
 .auth-header {
   margin-bottom: 32px;
 }
+
 .auth-header h1 {
   font-family: "Playfair Display", serif;
   font-size: 2rem;
   color: var(--text-main);
   margin-bottom: 8px;
 }
+
 .auth-header p {
   color: var(--text-muted);
   font-size: 1rem;
 }
+
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
   text-align: left;
 }
+
 .auth-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 40px 12px 16px;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
   font-size: 1rem;
   background: var(--background);
   transition: var(--transition);
 }
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper svg {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
 .auth-input:focus {
   outline: none;
   border-color: var(--border-focus);
   background: var(--surface);
 }
+
 .auth-btn {
   width: 100%;
   padding: 14px;
@@ -731,24 +766,29 @@ h3,
   transition: var(--transition);
   margin-top: 8px;
 }
+
 .auth-btn:hover {
   background: var(--accent-hover);
 }
+
 .auth-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
 .auth-footer {
   margin-top: 32px;
   font-size: 0.9rem;
   color: var(--text-muted);
 }
+
 .auth-link {
   color: var(--accent);
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition);
 }
+
 .auth-link:hover {
   color: var(--accent-hover);
   text-decoration: underline;
@@ -786,6 +826,7 @@ h3,
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -796,6 +837,7 @@ h3,
     transform: scale(0.96);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Toast } from "../components/Toast";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,9 +61,9 @@ export default function Login() {
               required
             />
           </div>
-          <div>
+          <div className="password-input-wrapper">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               className="auth-input"
               value={password}
@@ -69,6 +71,7 @@ export default function Login() {
               disabled={loading}
               required
             />
+            <Eye onClick={() => setShowPassword(!showPassword)} />
           </div>
           <button type="submit" className="auth-btn" disabled={loading}>
             {loading ? "Logging in..." : "Login"}

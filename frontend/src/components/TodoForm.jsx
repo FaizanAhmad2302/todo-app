@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Folder, Calendar, Flag, Tag } from "lucide-react";
 
 export function TodoForm({
   onSubmit,
@@ -116,7 +117,9 @@ export function TodoForm({
 
       <div className="todo-form-options">
         <div className="todo-form-chip" title="Set due date and time">
-          <span className="chip-icon">📅</span>
+          <span className="chip-icon">
+            <Calendar className="bar-icon" />
+          </span>
           <input
             type="datetime-local"
             className="chip-input"
@@ -128,7 +131,9 @@ export function TodoForm({
         </div>
 
         <div className="todo-form-chip" title="Set priority">
-          <span className="chip-icon">🎯</span>
+          <span className="chip-icon">
+            <Flag className="bar-icon" />
+          </span>
           <select
             className="chip-select"
             value={priority}
@@ -143,7 +148,9 @@ export function TodoForm({
         </div>
 
         <div className="todo-form-chip" title="Assign category">
-          <span className="chip-icon">📁</span>
+          <span className="chip-icon">
+            <Folder className="bar-icon" />
+          </span>
           <select
             className="chip-select"
             value={categoryId}
@@ -163,7 +170,9 @@ export function TodoForm({
 
       {tags.length > 0 && (
         <div className="todo-form-tags">
-          <span className="tags-label">Tags:</span>
+          <span className="tags-label">
+            <Tag className="bar-icon" /> Tags:
+          </span>
           {tags.map((t) => {
             const isSelected = selectedTags.includes(t._id);
             return (
