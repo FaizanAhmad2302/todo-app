@@ -5,6 +5,15 @@ import { getStatistics } from "../services/todoApi";
 import { Loading } from "../components/Loading";
 import { Toast } from "../components/Toast";
 
+import ListIcon from "@mui/icons-material/List";
+import CachedIcon from "@mui/icons-material/Cached";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import FolderIcon from "@mui/icons-material/Folder";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+
 // SVG Progress Ring Component
 function ProgressRing({ percentage = 0, size = 120, strokeWidth = 10 }) {
   const radius = (size - strokeWidth) / 2;
@@ -257,18 +266,18 @@ export default function ProductivityDashboard() {
     const { overdue, dueToday, completedToday } = stats.timeStats;
 
     if (overdue > 0) {
-      return `⚠️ You have ${overdue} overdue task${overdue > 1 ? "s" : ""}. Address high-priority overdue tasks first to get back on track!`;
+      return ` You have ${overdue} overdue task${overdue > 1 ? "s" : ""}. Address high-priority overdue tasks first to get back on track!`;
     }
     if (completionRate >= 80) {
-      return "🌟 Outstanding momentum! You've accomplished almost all of your tasks. Keep up the brilliant focus!";
+      return " Outstanding momentum! You've accomplished almost all of your tasks. Keep up the brilliant focus!";
     }
     if (completedToday > 0) {
-      return `🎯 Great job completing ${completedToday} task${completedToday > 1 ? "s" : ""} today! Keep pushing forward on your remaining goals.`;
+      return ` Great job completing ${completedToday} task${completedToday > 1 ? "s" : ""} today! Keep pushing forward on your remaining goals.`;
     }
     if (dueToday > 0) {
-      return `📅 You have ${dueToday} task${dueToday > 1 ? "s" : ""} due today. Focus on completing them before the end of the day!`;
+      return `You have ${dueToday} task${dueToday > 1 ? "s" : ""} due today. Focus on completing them before the end of the day!`;
     }
-    return "💡 Break larger tasks into smaller priority steps to consistently boost your completion rate.";
+    return " Break larger tasks into smaller priority steps to consistently boost your completion rate.";
   };
 
   return (
@@ -291,10 +300,10 @@ export default function ProductivityDashboard() {
         <div className="nav-section">
           <span className="nav-heading">Navigation</span>
           <Link to="/" className="nav-link">
-            📋 Task List
+            <ListIcon /> Task List
           </Link>
           <Link to="/productivity" className="nav-link active">
-            📊 Productivity
+            <TrendingUpIcon /> Productivity
           </Link>
         </div>
 
@@ -362,7 +371,7 @@ export default function ProductivityDashboard() {
                   gap: "6px",
                 }}
               >
-                🔄 Refresh
+                <CachedIcon /> Refresh
               </button>
               <Link
                 to="/"
@@ -373,7 +382,7 @@ export default function ProductivityDashboard() {
                   alignItems: "center",
                 }}
               >
-                ← Back to Tasks
+                <ArrowBackIcon /> Back to Tasks
               </Link>
             </div>
           </div>
@@ -427,7 +436,9 @@ export default function ProductivityDashboard() {
                 <div className="stats-card">
                   <div className="stats-card-header">
                     <span className="stats-card-title">Total Active Tasks</span>
-                    <span className="stats-card-icon">📋</span>
+                    <span className="stats-card-icon">
+                      <ListAltIcon />
+                    </span>
                   </div>
                   <div className="stats-card-value">
                     {stats.overview.totalTasks}
@@ -445,7 +456,7 @@ export default function ProductivityDashboard() {
                       className="stats-card-icon"
                       style={{ color: "#10b981" }}
                     >
-                      ✅
+                      <CheckCircleIcon />
                     </span>
                   </div>
                   <div
@@ -465,7 +476,7 @@ export default function ProductivityDashboard() {
                       className="stats-card-icon"
                       style={{ color: "#f59e0b" }}
                     >
-                      ⏳
+                      <PendingActionsIcon />
                     </span>
                   </div>
                   <div
@@ -481,7 +492,9 @@ export default function ProductivityDashboard() {
                 <div className="stats-card">
                   <div className="stats-card-header">
                     <span className="stats-card-title">Completion Rate</span>
-                    <span className="stats-card-icon">🎯</span>
+                    <span className="stats-card-icon">
+                      <TrendingUpIcon />
+                    </span>
                   </div>
                   <div
                     className="stats-card-value"
@@ -870,7 +883,7 @@ export default function ProductivityDashboard() {
                           <span
                             style={{ fontWeight: 600, fontSize: "0.875rem" }}
                           >
-                            📁 {cat.name}
+                            <FolderIcon /> {cat.name}
                           </span>
                           <span
                             style={{

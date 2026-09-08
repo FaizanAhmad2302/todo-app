@@ -1,5 +1,11 @@
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import FlagIcon from "@mui/icons-material/Flag";
+import FolderIcon from "@mui/icons-material/Folder";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import AddIcon from "@mui/icons-material/Add";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+
 import React, { useState } from "react";
-import { Folder, Calendar, Flag, Tag } from "lucide-react";
 
 export function TodoForm({
   onSubmit,
@@ -84,33 +90,11 @@ export function TodoForm({
           aria-label="Add task"
         >
           {isSubmitting ? (
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ animation: "spin 1s linear infinite" }}
-            >
-              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
-            </svg>
+            <AutorenewIcon
+              style={{ fontSize: "1rem", animation: "spin 1s linear infinite" }}
+            />
           ) : (
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
+            <AddIcon style={{ fontSize: "1.1rem" }} />
           )}
         </button>
       </div>
@@ -118,7 +102,7 @@ export function TodoForm({
       <div className="todo-form-options">
         <div className="todo-form-chip" title="Set due date and time">
           <span className="chip-icon">
-            <Calendar className="bar-icon" />
+            <CalendarTodayIcon className="bar-icon" />
           </span>
           <input
             type="datetime-local"
@@ -132,7 +116,7 @@ export function TodoForm({
 
         <div className="todo-form-chip" title="Set priority">
           <span className="chip-icon">
-            <Flag className="bar-icon" />
+            <FlagIcon className="bar-icon" />
           </span>
           <select
             className="chip-select"
@@ -149,7 +133,7 @@ export function TodoForm({
 
         <div className="todo-form-chip" title="Assign category">
           <span className="chip-icon">
-            <Folder className="bar-icon" />
+            <FolderIcon className="bar-icon" />
           </span>
           <select
             className="chip-select"
@@ -171,7 +155,7 @@ export function TodoForm({
       {tags.length > 0 && (
         <div className="todo-form-tags">
           <span className="tags-label">
-            <Tag className="bar-icon" /> Tags:
+            <LocalOfferIcon className="bar-icon" /> Tags:
           </span>
           {tags.map((t) => {
             const isSelected = selectedTags.includes(t._id);
