@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Toast } from "../components/Toast";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -91,9 +95,9 @@ export default function Signup() {
               required
             />
           </div>
-          <div>
+          <div className="password-input-wrapper">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password (min 8 characters)"
               className="auth-input"
               value={password}
@@ -101,10 +105,21 @@ export default function Signup() {
               disabled={loading || success}
               required
             />
+            {showPassword ? (
+              <VisibilityOffIcon
+                className="password-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              />
+            ) : (
+              <VisibilityIcon
+                className="password-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              />
+            )}
           </div>
-          <div>
+          <div className="password-input-wrapper">
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
               className="auth-input"
               value={confirmPassword}
@@ -112,6 +127,17 @@ export default function Signup() {
               disabled={loading || success}
               required
             />
+            {showConfirmPassword ? (
+              <VisibilityOffIcon
+                className="password-icon"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
+            ) : (
+              <VisibilityIcon
+                className="password-icon"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
+            )}
           </div>
           <button
             type="submit"

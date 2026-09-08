@@ -26,6 +26,7 @@ export default function Profile() {
     setTimeout(() => setToast({ message: "", type: "success" }), 4000);
   };
 
+  //request update function
   const handleRequestUpdate = async (e) => {
     e.preventDefault();
     setError("");
