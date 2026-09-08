@@ -238,7 +238,6 @@ export const getAdminTodos = async (sort, priority, category, tag) => {
   return apiFetch(url);
 };
 
-
 export const adminUpdateTodo = async (id, updates) => {
   return apiFetch(`/admin/todos/${id}`, {
     method: "PATCH",

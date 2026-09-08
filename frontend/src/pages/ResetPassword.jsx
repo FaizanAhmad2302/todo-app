@@ -3,9 +3,6 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { apiFetch } from "../services/todoApi";
 import { Toast } from "../components/Toast";
 
-
-
-
 export default function ResetPassword() {
   const location = useLocation();
   const email = location.state?.email || "";
@@ -17,9 +14,7 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-
   const navigate = useNavigate();
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();

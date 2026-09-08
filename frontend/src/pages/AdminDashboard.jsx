@@ -12,8 +12,6 @@ import {
 
 import "./Profile.css";
 
-
-
 import PeopleIcon from "@mui/icons-material/People";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -49,15 +47,11 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState("overview"); // 'overview', 'users', 'todos'
 
-
   const [users, setUsers] = useState([]);
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "success" });
-
-
-
 
   // Modal states
   const [editTodoId, setEditTodoId] = useState(null);
@@ -252,7 +246,6 @@ export default function AdminDashboard() {
       setIsSubmitting(false);
     }
   };
-
 
   // Derived stats
   const normalUsers = users.filter((u) => u.role !== "admin");
@@ -550,16 +543,16 @@ export default function AdminDashboard() {
 
                 const categoryName =
                   typeof todo.categoryId === "object" &&
-                    todo.categoryId !== null
+                  todo.categoryId !== null
                     ? todo.categoryId.name
                     : null;
 
                 const tagNames = Array.isArray(todo.tags)
                   ? todo.tags
-                    .map((t) =>
-                      typeof t === "object" && t !== null ? t.name : null
-                    )
-                    .filter(Boolean)
+                      .map((t) =>
+                        typeof t === "object" && t !== null ? t.name : null
+                      )
+                      .filter(Boolean)
                   : [];
 
                 return (
@@ -627,7 +620,7 @@ export default function AdminDashboard() {
                                 : "var(--border)",
                           color:
                             todo.priority === "High" ||
-                              todo.priority === "Medium"
+                            todo.priority === "Medium"
                               ? "white"
                               : "var(--text-muted)",
                         }}
@@ -726,11 +719,9 @@ export default function AdminDashboard() {
     </div>
   );
 
-
   /*reset pass section*/
   const renderResetPassword = () => (
     <div className="profile-container" style={{ margin: "2rem auto" }}>
-
       {!otpStep ? (
         <form className="profile-form" onSubmit={handleRequestUpdate}>
           {error && <div className="error-banner">{error}</div>}
@@ -794,11 +785,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isSubmitting}
-          >
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
             {isSubmitting ? "Processing..." : "Save Changes"}
           </button>
         </form>
@@ -810,8 +797,8 @@ export default function AdminDashboard() {
           <h2>Verify Profile Update</h2>
           <p>
             We've sent a 6-digit verification code to{" "}
-            <strong>{currentUser?.email}</strong>. Please enter it below
-            to confirm your changes.
+            <strong>{currentUser?.email}</strong>. Please enter it below to
+            confirm your changes.
           </p>
 
           {error && <div className="error-banner">{error}</div>}
@@ -854,7 +841,6 @@ export default function AdminDashboard() {
       )}
     </div>
   );
-
 
   return (
     <div className="admin-layout">
@@ -1060,8 +1046,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-
-
       {/* Delete Todo Modal */}
       {deleteTodoId !== null && (
         <div className="modal-overlay">
@@ -1092,9 +1076,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-
-
-
 
       {/* Delete User Modal */}
       {deleteUserId !== null && (
@@ -1160,9 +1141,5 @@ export default function AdminDashboard() {
     </div>
   );
 
-
   //reset pass form create
-
-
-
 }

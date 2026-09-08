@@ -60,8 +60,6 @@ export default function Profile() {
     }
   };
 
-
-
   const handleVerifyUpdate = async (e) => {
     e.preventDefault();
     setError("");

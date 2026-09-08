@@ -106,11 +106,15 @@ export default function Signup() {
               required
             />
             {showPassword ? (
-              <VisibilityOffIcon className="password-icon"
+              <VisibilityOffIcon
+                className="password-icon"
                 onClick={() => setShowPassword(!showPassword)}
               />
             ) : (
-              <VisibilityIcon className="password-icon" onClick={() => setShowPassword(!showPassword)} />
+              <VisibilityIcon
+                className="password-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              />
             )}
           </div>
           <div className="password-input-wrapper">
@@ -124,11 +128,13 @@ export default function Signup() {
               required
             />
             {showConfirmPassword ? (
-              <VisibilityOffIcon className="password-icon"
+              <VisibilityOffIcon
+                className="password-icon"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               />
             ) : (
-              <VisibilityIcon className="password-icon"
+              <VisibilityIcon
+                className="password-icon"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               />
             )}

@@ -73,11 +73,12 @@ export default function Login() {
               required
             />
             {showPassword ? (
-              <VisibilityOffIcon onClick={() => setShowPassword(!showPassword)} />
+              <VisibilityOffIcon
+                onClick={() => setShowPassword(!showPassword)}
+              />
             ) : (
               <VisibilityIcon onClick={() => setShowPassword(!showPassword)} />
             )}
-
           </div>
           <button type="submit" className="auth-btn" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
