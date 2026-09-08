@@ -396,11 +396,9 @@ h3,
 
 .todo-item.overdue {
   border-color: rgba(239, 68, 68, 0.45);
-  background: linear-gradient(
-    90deg,
-    rgba(254, 242, 242, 0.5) 0%,
-    var(--surface) 35%
-  );
+  background: linear-gradient(90deg,
+      rgba(254, 242, 242, 0.5) 0%,
+      var(--surface) 35%);
   box-shadow:
     0 0 0 1px rgba(239, 68, 68, 0.15),
     var(--shadow-sm);
@@ -446,16 +444,16 @@ h3,
   place-content: center;
 }
 
-.todo-checkbox:hover + .checkbox-custom {
+.todo-checkbox:hover+.checkbox-custom {
   border-color: var(--accent);
 }
 
-.todo-checkbox:focus-visible + .checkbox-custom {
+.todo-checkbox:focus-visible+.checkbox-custom {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.todo-checkbox:checked + .checkbox-custom {
+.todo-checkbox:checked+.checkbox-custom {
   background-color: var(--accent);
   border-color: var(--accent);
 }
@@ -471,7 +469,7 @@ h3,
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.todo-checkbox:checked + .checkbox-custom::after {
+.todo-checkbox:checked+.checkbox-custom::after {
   opacity: 1;
   transform: scale(1);
 }
@@ -746,6 +744,7 @@ h3,
   transform: translateY(-50%);
   cursor: pointer;
 }
+
 
 .auth-input:focus {
   outline: none;

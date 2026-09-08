@@ -7,7 +7,12 @@ import {
   adminUpdateTodo,
   adminDeleteTodo,
   adminDeleteUser,
+  apiFetch,
 } from "../services/todoApi";
+
+import "./Profile.css";
+
+
 
 import PeopleIcon from "@mui/icons-material/People";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
@@ -22,6 +27,7 @@ import LayoutDashboardIcon from "@mui/icons-material/Dashboard";
 import { Toast } from "../components/Toast";
 import { TodoHistoryModal } from "../components/TodoHistoryModal";
 import "./AdminDashboard.css";
+import Profile from "./Profile";
 
 const toDatetimeLocal = (isoString) => {
   if (!isoString) return "";
@@ -32,15 +38,26 @@ const toDatetimeLocal = (isoString) => {
 };
 
 export default function AdminDashboard() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, reloadUser, forceLogout } = useAuth();
+  const [name, setName] = useState(currentUser?.name || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("overview"); // 'overview', 'users', 'todos'
+
+
   const [users, setUsers] = useState([]);
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState({ message: "", type: "success" });
+
+
+
 
   // Modal states
   const [editTodoId, setEditTodoId] = useState(null);
@@ -166,6 +183,76 @@ export default function AdminDashboard() {
       setDeleteUserConfirmText("");
     }
   };
+
+  //reset password function
+  const handleRequestUpdate = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // Validation
+    if (newPassword && newPassword.length < 8) {
+      return setError("New password must be at least 8 characters.");
+    }
+    if (newPassword !== confirmPassword) {
+      return setError("New passwords do not match.");
+    }
+    if (newPassword && !currentPassword) {
+      return setError("Current password is required to change password.");
+    }
+    if (name.trim() === currentUser.name && !newPassword) {
+      return setError("No changes made.");
+    }
+
+    try {
+      setIsSubmitting(true);
+      await apiFetch("/profile/request-update", {
+        method: "POST",
+        body: JSON.stringify({ name, currentPassword, newPassword }),
+      });
+      setOtpStep(true);
+      showToast("Verification code sent to your email.");
+    } catch (err) {
+      setError(err.message || "Failed to request update.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  //otp
+  const handleVerifyUpdate = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!otp || otp.length !== 6) {
+      return setError("Please enter a valid 6-digit code.");
+    }
+
+    try {
+      setIsSubmitting(true);
+      const res = await apiFetch("/profile/verify-update", {
+        method: "PUT",
+        body: JSON.stringify({ otp, name, newPassword }),
+      });
+
+      if (res.passwordChanged) {
+        forceLogout();
+        navigate("/login", { state: { message: res.message } });
+      } else {
+        await reloadUser();
+        setOtpStep(false);
+        setOtp("");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        showToast("Profile updated successfully!");
+      }
+    } catch (err) {
+      setError(err.message || "Invalid verification code.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   // Derived stats
   const normalUsers = users.filter((u) => u.role !== "admin");
@@ -463,16 +550,16 @@ export default function AdminDashboard() {
 
                 const categoryName =
                   typeof todo.categoryId === "object" &&
-                  todo.categoryId !== null
+                    todo.categoryId !== null
                     ? todo.categoryId.name
                     : null;
 
                 const tagNames = Array.isArray(todo.tags)
                   ? todo.tags
-                      .map((t) =>
-                        typeof t === "object" && t !== null ? t.name : null
-                      )
-                      .filter(Boolean)
+                    .map((t) =>
+                      typeof t === "object" && t !== null ? t.name : null
+                    )
+                    .filter(Boolean)
                   : [];
 
                 return (
@@ -540,7 +627,7 @@ export default function AdminDashboard() {
                                 : "var(--border)",
                           color:
                             todo.priority === "High" ||
-                            todo.priority === "Medium"
+                              todo.priority === "Medium"
                               ? "white"
                               : "var(--text-muted)",
                         }}
@@ -639,6 +726,136 @@ export default function AdminDashboard() {
     </div>
   );
 
+
+  /*reset pass section*/
+  const renderResetPassword = () => (
+    <div className="profile-container" style={{ margin: "2rem auto" }}>
+
+      {!otpStep ? (
+        <form className="profile-form" onSubmit={handleRequestUpdate}>
+          {error && <div className="error-banner">{error}</div>}
+
+          <div className="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              value={currentUser?.email}
+              disabled
+              className="disabled-input"
+            />
+            <small className="help-text">
+              Email address cannot be changed.
+            </small>
+          </div>
+
+          <div className="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+
+          <hr className="divider" />
+          <h3>Change Password</h3>
+          <p className="help-text">
+            Leave blank if you do not want to change your password.
+          </p>
+
+          <div className="form-group">
+            <label>Current Password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Confirm New Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Processing..." : "Save Changes"}
+          </button>
+        </form>
+      ) : (
+        <form
+          className="profile-form otp-form fade-in"
+          onSubmit={handleVerifyUpdate}
+        >
+          <h2>Verify Profile Update</h2>
+          <p>
+            We've sent a 6-digit verification code to{" "}
+            <strong>{currentUser?.email}</strong>. Please enter it below
+            to confirm your changes.
+          </p>
+
+          {error && <div className="error-banner">{error}</div>}
+
+          <div className="form-group">
+            <label>Verification Code (OTP)</label>
+            <input
+              type="text"
+              maxLength="6"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+              placeholder="123456"
+              required
+              style={{
+                fontSize: "1.5rem",
+                letterSpacing: "8px",
+                textAlign: "center",
+              }}
+            />
+          </div>
+
+          <div className="button-group">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setOtpStep(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSubmitting || otp.length !== 6}
+            >
+              {isSubmitting ? "Verifying..." : "Confirm Update"}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+
+
   return (
     <div className="admin-layout">
       {/* Sidebar */}
@@ -674,8 +891,18 @@ export default function AdminDashboard() {
             </span>{" "}
             Todos
           </button>
-          <Link
-            to="/profile"
+          <button
+            onClick={() => setActiveTab("reset-password")}
+            className={`nav-item btn-link ${activeTab === "reset-password" ? "active" : ""}`}
+          >
+            <span className="icon">
+              <SettingsIcon size={18} />
+            </span>{" "}
+            Settings
+          </button>
+
+          {/*<Link
+            to="/admin"
             className="nav-item btn-link"
             style={{ textDecoration: "none" }}
           >
@@ -683,7 +910,7 @@ export default function AdminDashboard() {
               <SettingsIcon size={18} />
             </span>{" "}
             Settings
-          </Link>
+          </Link>*/}
         </nav>
         <div className="admin-sidebar-footer">
           <button onClick={handleLogout} className="admin-logout-btn">
@@ -703,6 +930,7 @@ export default function AdminDashboard() {
               {activeTab === "overview" && "Dashboard Overview"}
               {activeTab === "users" && "User Management"}
               {activeTab === "todos" && "Todo Records"}
+              {activeTab === "reset-password" && "Reset Password"}
             </h1>
             <p>Welcome back, {currentUser?.name || "Administrator"}!</p>
           </div>
@@ -747,6 +975,7 @@ export default function AdminDashboard() {
               {activeTab === "overview" && renderOverview()}
               {activeTab === "users" && renderUsers()}
               {activeTab === "todos" && renderTodos()}
+              {activeTab === "reset-password" && renderResetPassword()}
             </>
           )
         )}
@@ -831,6 +1060,8 @@ export default function AdminDashboard() {
         </div>
       )}
 
+
+
       {/* Delete Todo Modal */}
       {deleteTodoId !== null && (
         <div className="modal-overlay">
@@ -861,6 +1092,9 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+
+
 
       {/* Delete User Modal */}
       {deleteUserId !== null && (
@@ -925,4 +1159,10 @@ export default function AdminDashboard() {
       />
     </div>
   );
+
+
+  //reset pass form create
+
+
+
 }

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Toast } from "../components/Toast";
-import { Eye, EyeOff } from "lucide-react";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -71,7 +72,12 @@ export default function Login() {
               disabled={loading}
               required
             />
-            <Eye onClick={() => setShowPassword(!showPassword)} />
+            {showPassword ? (
+              <VisibilityOffIcon onClick={() => setShowPassword(!showPassword)} />
+            ) : (
+              <VisibilityIcon onClick={() => setShowPassword(!showPassword)} />
+            )}
+
           </div>
           <button type="submit" className="auth-btn" disabled={loading}>
             {loading ? "Logging in..." : "Login"}
